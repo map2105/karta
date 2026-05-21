@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивная карта России</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <header class="header">
+      <h1 class="header-title">Карта России</h1>
+      <span class="header-count" id="locationCount"></span>
+    </header>
+
+    <div class="content">
+
+      <div class="map-area" id="mapArea">
+        <!-- SVG карта загружается инлайн через fetch в map.js -->
+        <div id="svgContainer"></div>
+      </div>
+
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <h2 class="sidebar-title" id="sidebarTitle"></h2>
+          <button class="close-btn" id="closeBtn" title="Закрыть">✕</button>
+        </div>
+        <ul class="file-list" id="fileList"></ul>
+      </aside>
+
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="map.js"></script>
+</body>
+</html>
