@@ -78,37 +78,8 @@
   <path class="neighbor" data-name="Siachen Glacier" fill="url(#neighborHatch)" stroke="#a09880" stroke-width="5" d="M 6924.0,11193.5 L 6890.3,11060.1 6929.0,11086.6 6971.6,11105.1 7013.8,11100.2 6938.3,11178.6 Z"/>
   </g>
 
-  <!-- Подписи соседних стран -->
-  <g id="neighborLabels" pointer-events="none" font-family="Segoe UI, Arial, sans-serif" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" letter-spacing="6" pointer-events="none">
-    <!-- Норвегия: lon=23 lat=69.5 -->
-    <text x="462" y="2883" font-size="110" opacity="0.65">Норвегия</text>
-    <!-- Финляндия: lon=26 lat=63.5 -->
-    <text x="820" y="4332" font-size="115" opacity="0.65">Финляндия</text>
-    <!-- Швеция: lon=21.5 lat=61 -->
-    <text x="283" y="4935" font-size="105" opacity="0.60">Швеция</text>
-    <!-- Эстония: lon=25.5 lat=58.7 -->
-    <text x="761" y="5492" font-size="100" opacity="0.65">Эстония</text>
-    <!-- Латвия: lon=25 lat=57 -->
-    <text x="701" y="5903" font-size="100" opacity="0.65">Латвия</text>
-    <!-- Литва: lon=24 lat=55.8 -->
-    <text x="581" y="6193" font-size="100" opacity="0.65">Литва</text>
-    <!-- Польша: lon=21.5 lat=52 — сдвинута от края -->
-    <text x="450" y="7112" font-size="110" opacity="0.65">Польша</text>
-    <!-- Беларусь: lon=28.5 lat=53.5 -->
-    <text x="1119" y="6749" font-size="115" opacity="0.65">Беларусь</text>
-    <!-- Украина: lon=32 lat=49.5 -->
-    <text x="1538" y="7716" font-size="130" opacity="0.65">Украина</text>
-    <!-- Румыния: lon=25 lat=45.8 -->
-    <text x="701" y="8610" font-size="105" opacity="0.65">Румыния</text>
-    <!-- Казахстан: lon=67 lat=49 -->
-    <text x="5722" y="7837" font-size="145" opacity="0.65">Казахстан</text>
-    <!-- Монголия: lon=103 lat=46.5 -->
-    <text x="10027" y="8441" font-size="130" opacity="0.65">Монголия</text>
-    <!-- Китай: lon=100 lat=43.5 -->
-    <text x="9661" y="9183" font-size="145" opacity="0.65">Китай</text>
-    <!-- Грузия: lon=43.5 lat=42.2 -->
-    <text x="2913" y="9380" font-size="100" opacity="0.65">Грузия</text>
-  </g>
+  <!-- Подписи соседних стран: убраны по запросу -->
+  <g id="neighborLabels" pointer-events="none"></g>
 
   <!-- Регионы России -->
   <g id="russia">
