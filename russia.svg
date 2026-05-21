@@ -18,44 +18,6 @@
   <!-- Фон — цвет моря -->
   <rect x="0" y="0" width="20955" height="11530" fill="#b8d4e8"/>
 
-  <!-- Сетка параллелей и меридианов -->
-  <g id="grid" pointer-events="none">
-  <line x1="103" y1="8803" x2="20429" y2="8803" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="103" y1="7594" x2="20429" y2="7594" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="103" y1="6386" x2="20429" y2="6386" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="103" y1="5178" x2="20429" y2="5178" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="103" y1="3969" x2="20429" y2="3969" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="103" y1="2761" x2="20429" y2="2761" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="103" y1="1553" x2="20429" y2="1553" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="103" y1="344" x2="20429" y2="344" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="103" y1="103" x2="103" y2="9770" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="2494" y1="103" x2="2494" y2="9770" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="4885" y1="103" x2="4885" y2="9770" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="7276" y1="103" x2="7276" y2="9770" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="9668" y1="103" x2="9668" y2="9770" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="12059" y1="103" x2="12059" y2="9770" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="14450" y1="103" x2="14450" y2="9770" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="16842" y1="103" x2="16842" y2="9770" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <line x1="19233" y1="103" x2="19233" y2="9770" stroke="#7090a8" stroke-width="7" stroke-dasharray="60,50" opacity="0.30"/>
-  <text x="13" y="8803" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="end" dominant-baseline="middle" opacity="0.65" pointer-events="none">45°с.ш.</text>
-  <text x="13" y="7594" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="end" dominant-baseline="middle" opacity="0.65" pointer-events="none">50°с.ш.</text>
-  <text x="13" y="6386" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="end" dominant-baseline="middle" opacity="0.65" pointer-events="none">55°с.ш.</text>
-  <text x="13" y="5178" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="end" dominant-baseline="middle" opacity="0.65" pointer-events="none">60°с.ш.</text>
-  <text x="13" y="3969" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="end" dominant-baseline="middle" opacity="0.65" pointer-events="none">65°с.ш.</text>
-  <text x="13" y="2761" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="end" dominant-baseline="middle" opacity="0.65" pointer-events="none">70°с.ш.</text>
-  <text x="13" y="1553" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="end" dominant-baseline="middle" opacity="0.65" pointer-events="none">75°с.ш.</text>
-  <text x="13" y="344" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="end" dominant-baseline="middle" opacity="0.65" pointer-events="none">80°с.ш.</text>
-  <text x="103" y="9975" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="middle" dominant-baseline="auto" opacity="0.65" pointer-events="none">20°в.д.</text>
-  <text x="2494" y="9975" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="middle" dominant-baseline="auto" opacity="0.65" pointer-events="none">40°в.д.</text>
-  <text x="4885" y="9975" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="middle" dominant-baseline="auto" opacity="0.65" pointer-events="none">60°в.д.</text>
-  <text x="7276" y="9975" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="middle" dominant-baseline="auto" opacity="0.65" pointer-events="none">80°в.д.</text>
-  <text x="9668" y="9975" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="middle" dominant-baseline="auto" opacity="0.65" pointer-events="none">100°в.д.</text>
-  <text x="12059" y="9975" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="middle" dominant-baseline="auto" opacity="0.65" pointer-events="none">120°в.д.</text>
-  <text x="14450" y="9975" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="middle" dominant-baseline="auto" opacity="0.65" pointer-events="none">140°в.д.</text>
-  <text x="16842" y="9975" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="middle" dominant-baseline="auto" opacity="0.65" pointer-events="none">160°в.д.</text>
-  <text x="19233" y="9975" font-family="Segoe UI, Arial, sans-serif" font-size="115" fill="#3a5068" text-anchor="middle" dominant-baseline="auto" opacity="0.65" pointer-events="none">180°</text>
-  </g>
-
   <!-- Соседние страны (диагональная штриховка) -->
   <g id="neighbors">
   <path class="neighbor" data-name="Uzbekistan" fill="url(#neighborHatch)" stroke="#a09880" stroke-width="5" d="M 6194.4,9468.2 L 6205.1,9459.5 6226.2,9478.4 6228.1,9489.0 6183.7,9520.9 6177.3,9547.0 6156.7,9558.4 6135.6,9594.8 6102.9,9631.9 6105.3,9645.7 6115.9,9649.9 6137.6,9670.3 6158.5,9658.7 6163.6,9661.3 6174.8,9706.6 6184.1,9715.6 6214.0,9733.1 6227.5,9736.2 6236.5,9733.1 6247.8,9740.2 6251.1,9687.4 6260.6,9695.7 6270.8,9689.5 6272.8,9648.4 6280.3,9639.2 6284.6,9660.3 6295.6,9670.2 6303.4,9694.7 6305.9,9722.9 6326.6,9730.2 6334.2,9724.9 6340.0,9728.0 6342.8,9763.7 6345.8,9766.6 6363.9,9759.5 6380.9,9774.4 6399.1,9801.4 6419.7,9803.3 6424.0,9808.1 6438.7,9803.8 6455.7,9811.4 6456.3,9815.8 6412.9,9854.5 6401.6,9877.4 6392.6,9884.7 6368.4,9872.0 6364.6,9886.1 6368.9,9899.8 6363.1,9914.6 6350.7,9909.2 6348.2,9901.9 6336.1,9905.7 6315.1,9949.2 6301.9,9955.0 6283.6,9974.9 6276.1,9959.2 6263.0,9961.2 6237.2,9942.3 6159.3,9963.1 6153.3,9959.9 6145.0,9933.2 6125.7,9918.8 6126.3,9905.5 6166.4,9850.0 6171.0,9832.9 6157.7,9823.5 6159.8,9808.8 6129.3,9761.5 6116.2,9796.2 6046.9,9852.9 6036.8,9847.6 6011.2,9819.0 5998.7,9836.7 5999.2,9858.3 5986.3,9874.8 5998.0,9932.6 5996.9,9940.0 5987.9,9942.0 5994.5,9963.8 5989.0,9966.3 5955.9,9957.9 5917.5,9971.3 5918.6,9980.5 5952.9,9978.7 5958.3,9989.9 5956.4,9994.4 5938.3,9999.5 5936.5,10008.5 5946.0,10034.0 5941.6,10039.6 5935.1,10034.8 5930.0,10051.3 5918.5,10050.6 5912.2,10099.9 5902.7,10117.3 5889.8,10125.5 5808.5,10103.2 5787.4,10118.6 5773.5,10140.8 5765.3,10201.0 5800.1,10221.7 5805.6,10254.6 5847.4,10257.3 5858.0,10270.8 5859.9,10279.8 5847.8,10333.3 5852.5,10380.6 5859.3,10402.4 5884.0,10444.0 5877.3,10487.1 5852.6,10534.8 5819.9,10619.0 5818.0,10677.5 5813.3,10695.1 5806.2,10681.8 5787.9,10679.8 5784.4,10672.3 5760.8,10686.1 5745.9,10679.9 5730.8,10655.8 5701.9,10647.0 5665.4,10652.5 5665.8,10546.8 5678.2,10511.5 5671.7,10492.4 5649.6,10482.7 5599.5,10436.0 5585.9,10430.1 5570.5,10440.3 5556.7,10437.4 5492.6,10364.7 5438.2,10312.2 5400.9,10258.8 5383.3,10264.6 5335.6,10214.5 5304.8,10162.2 5202.5,10045.9 5182.5,10017.6 5169.6,9931.4 5160.4,9898.7 5147.3,9880.9 5136.1,9846.5 5113.1,9747.4 5082.2,9712.0 5064.6,9703.3 5051.5,9709.1 5044.5,9722.8 5034.1,9724.3 4989.3,9709.9 4940.0,9716.4 4896.3,9673.5 4893.8,9654.9 4902.1,9626.4 4894.6,9586.4 4898.6,9578.4 4906.7,9580.9 4909.6,9575.9 4898.4,9550.7 4878.6,9534.7 4883.8,9477.2 4868.6,9457.0 4820.0,9455.9 4808.4,9450.2 4799.1,9442.3 4785.1,9404.7 4751.3,9392.6 4716.9,9340.2 4710.1,9363.5 4703.5,9368.1 4677.5,9362.0 4664.6,9376.5 4696.5,9430.0 4703.2,9456.0 4693.9,9457.6 4680.3,9424.7 4649.9,9410.5 4640.0,9426.8 4624.3,9482.4 4608.9,9488.5 4572.5,9490.6 4561.6,9498.4 4522.6,9563.0 4529.1,9661.1 4541.1,9685.3 4529.0,9706.3 4404.6,9692.1 4404.4,8804.5 4584.0,8721.7 4712.8,8669.1 5006.1,8949.8 5013.0,8960.8 5024.4,9004.2 5123.5,9167.7 5269.0,9134.9 5416.8,9153.4 5472.1,9113.9 5515.8,9185.7 5542.7,9211.6 5579.4,9316.4 5615.0,9288.9 5604.1,9527.1 5662.6,9529.6 5671.4,9623.3 5687.8,9726.7 5700.3,9735.6 5810.4,9724.7 5818.8,9730.4 5834.4,9722.5 5855.6,9763.1 5847.8,9816.1 5861.3,9837.2 5891.7,9862.0 5901.4,9864.6 5910.6,9861.2 5913.9,9852.2 5908.6,9826.8 5911.9,9799.9 5930.2,9759.9 5960.1,9720.4 5966.9,9706.2 5969.4,9681.3 5980.0,9667.2 6005.7,9651.4 6009.6,9639.0 6041.0,9607.6 6076.4,9587.8 6092.7,9571.7 6131.0,9509.3 6139.7,9508.9 6145.8,9518.8 6151.1,9519.6 6166.8,9487.6 6184.1,9478.2 Z M 6159.3,9785.3 L 6149.6,9764.0 6149.2,9774.4 6155.7,9785.8 Z M 6225.4,10037.6 L 6202.2,10037.0 6206.2,10013.5 6197.7,10002.3 6198.0,9979.5 6203.7,9975.6 6210.4,9992.4 6228.1,10000.0 6222.2,10016.5 6226.6,10034.2 Z M 6294.0,10023.7 L 6290.8,10034.1 6280.8,10024.7 6282.3,10019.3 6295.2,10012.8 Z"/>
@@ -117,43 +79,35 @@
   </g>
 
   <!-- Подписи соседних стран -->
-  <g id="neighborLabels" pointer-events="none">
-  <text x="5605" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Узбекистан</text>
-  <text x="19950" y="6404" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">США</text>
-  <text x="1419" y="7904" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Украина</text>
-  <text x="4531" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Туркменистан</text>
-  <text x="1679" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Турция</text>
-  <text x="6136" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Таджикистан</text>
-  <text x="282" y="4423" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Швеция</text>
-  <text x="12985" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Юж. Корея</text>
-  <text x="282" y="7871" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Словакия</text>
-  <text x="282" y="8985" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Сербия</text>
-  <text x="644" y="8599" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Румыния</text>
-  <text x="282" y="7320" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Польша</text>
-  <text x="430" y="1975" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Норвегия</text>
-  <text x="12956" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Сев. Корея</text>
-  <text x="10012" y="8132" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Монголия</text>
-  <text x="1123" y="8300" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Молдова</text>
-  <text x="588" y="6368" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Литва</text>
-  <text x="744" y="5938" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Латвия</text>
-  <text x="6456" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Кыргызстан</text>
-  <text x="5581" y="8103" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Казахстан</text>
-  <text x="14627" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Япония</text>
-  <text x="282" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Италия</text>
-  <text x="3445" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Иран</text>
-  <text x="282" y="8259" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Венгрия</text>
-  <text x="495" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Греция</text>
-  <text x="2955" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Грузия</text>
-  <text x="685" y="4134" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Финляндия</text>
-  <text x="652" y="5535" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Эстония</text>
-  <text x="282" y="7681" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Чехия</text>
-  <text x="10836" y="8769" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Китай</text>
-  <text x="696" y="9380" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Болгария</text>
-  <text x="1075" y="6744" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Беларусь</text>
-  <text x="3313" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Азербайджан</text>
-  <text x="282" y="8103" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Австрия</text>
-  <text x="3119" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Армения</text>
-  <text x="6189" y="9408" font-family="Segoe UI, Arial, sans-serif" font-size="115" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" opacity="0.55" letter-spacing="6" pointer-events="none">Афганистан</text>
+  <g id="neighborLabels" pointer-events="none" font-family="Segoe UI, Arial, sans-serif" font-style="italic" font-weight="400" fill="#5a5040" text-anchor="middle" dominant-baseline="middle" letter-spacing="6" pointer-events="none">
+    <!-- Норвегия: lon=23 lat=69.5 -->
+    <text x="462" y="2883" font-size="110" opacity="0.65">Норвегия</text>
+    <!-- Финляндия: lon=26 lat=63.5 -->
+    <text x="820" y="4332" font-size="115" opacity="0.65">Финляндия</text>
+    <!-- Швеция: lon=21.5 lat=61 -->
+    <text x="283" y="4935" font-size="105" opacity="0.60">Швеция</text>
+    <!-- Эстония: lon=25.5 lat=58.7 -->
+    <text x="761" y="5492" font-size="100" opacity="0.65">Эстония</text>
+    <!-- Латвия: lon=25 lat=57 -->
+    <text x="701" y="5903" font-size="100" opacity="0.65">Латвия</text>
+    <!-- Литва: lon=24 lat=55.8 -->
+    <text x="581" y="6193" font-size="100" opacity="0.65">Литва</text>
+    <!-- Польша: lon=21.5 lat=52 — сдвинута от края -->
+    <text x="450" y="7112" font-size="110" opacity="0.65">Польша</text>
+    <!-- Беларусь: lon=28.5 lat=53.5 -->
+    <text x="1119" y="6749" font-size="115" opacity="0.65">Беларусь</text>
+    <!-- Украина: lon=32 lat=49.5 -->
+    <text x="1538" y="7716" font-size="130" opacity="0.65">Украина</text>
+    <!-- Румыния: lon=25 lat=45.8 -->
+    <text x="701" y="8610" font-size="105" opacity="0.65">Румыния</text>
+    <!-- Казахстан: lon=67 lat=49 -->
+    <text x="5722" y="7837" font-size="145" opacity="0.65">Казахстан</text>
+    <!-- Монголия: lon=103 lat=46.5 -->
+    <text x="10027" y="8441" font-size="130" opacity="0.65">Монголия</text>
+    <!-- Китай: lon=100 lat=43.5 -->
+    <text x="9661" y="9183" font-size="145" opacity="0.65">Китай</text>
+    <!-- Грузия: lon=43.5 lat=42.2 -->
+    <text x="2913" y="9380" font-size="100" opacity="0.65">Грузия</text>
   </g>
 
   <!-- Регионы России -->

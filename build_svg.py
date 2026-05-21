@@ -128,6 +128,48 @@ SEA_COLOR     = "#b8d4e8"   # цвет моря (фон SVG)
 NEIGHBOR_FILL = "#e8e5dc"   # светлее и нейтральнее
 NEIGHBOR_LINE = "#cec9bc"   # очень слабые линии
 
+# ── Ручные позиции подписей стран (lon, lat) — для точного размещения ─────
+# Если страна есть здесь — используем эту точку, иначе вычисляем автоматически
+MANUAL_LABEL_POS = {
+    "Норвегия":          ( 20.0, 67.5),
+    "Швеция":            ( 17.0, 63.0),
+    "Финляндия":         ( 26.5, 63.0),
+    "Эстония":           ( 25.0, 58.7),
+    "Латвия":            ( 25.0, 57.0),
+    "Литва":             ( 24.0, 55.7),
+    "Польша":            ( 20.5, 52.0),
+    "Беларусь":          ( 28.0, 53.5),
+    "Украина":           ( 31.5, 49.0),
+    "Молдова":           ( 28.5, 47.2),
+    "Румыния":           ( 25.0, 45.5),
+    "Болгария":          ( 25.0, 42.7),
+    "Турция":            ( 35.5, 39.5),
+    "Грузия":            ( 43.5, 42.0),
+    "Азербайджан":       ( 47.5, 40.5),
+    "Армения":           ( 44.5, 40.2),
+    "Иран":              ( 53.0, 33.0),
+    "Афганистан":        ( 65.0, 33.0),
+    "Казахстан":         ( 67.0, 48.0),
+    "Узбекистан":        ( 63.0, 41.5),
+    "Туркменистан":      ( 58.5, 39.5),
+    "Таджикистан":       ( 71.0, 38.5),
+    "Кыргызстан":        ( 74.5, 41.5),
+    "Монголия":          (103.0, 46.5),
+    "Китай":             (103.0, 38.0),
+    "Сев. Корея":        (127.0, 40.5),
+    "Япония":            (137.0, 37.0),
+    "США":               (195.0, 64.5),
+    "Норвегия":          ( 14.0, 65.0),
+    "Дания":             ( 10.0, 56.0),
+    "Германия":          ( 10.5, 51.0),
+    "Чехия":             ( 15.5, 49.8),
+    "Австрия":           ( 14.5, 47.5),
+    "Венгрия":           ( 19.0, 47.0),
+    "Словакия":          ( 19.5, 48.7),
+    "Сербия":            ( 21.0, 44.0),
+    "Греция":            ( 22.0, 39.5),
+}
+
 # ── Перевод названий стран на русский (для подписей) ──────────────────────
 COUNTRY_NAMES_RU = {
     "Norway":                   "Норвегия",
@@ -732,9 +774,33 @@ def build_neighbor_paths(world_data):
 
 
 def build_neighbor_labels_svg(label_data):
-    """Генерирует ненавязчивые подписи названий соседних стран."""
+    """Генерирует подписи только для крупных соседних стран — строго по ручным координатам."""
+    # Только страны которые хорошо видны на карте + точные координаты
+    FIXED_LABELS = [
+        ("Норвегия",      16.0, 68.0),
+        ("Финляндия",     26.0, 63.5),
+        ("Швеция",        17.0, 62.0),
+        ("Эстония",       25.5, 58.7),
+        ("Латвия",        25.0, 57.0),
+        ("Литва",         24.0, 55.8),
+        ("Беларусь",      28.5, 53.5),
+        ("Украина",       32.0, 49.5),
+        ("Польша",        20.0, 52.0),
+        ("Румыния",       25.0, 45.8),
+        ("Казахстан",     67.0, 49.0),
+        ("Монголия",     103.0, 46.5),
+        ("Китай",        103.0, 40.0),
+        ("Грузия",        43.5, 42.2),
+        ("Азербайджан",   47.5, 40.5),
+        ("Туркменистан",  58.5, 40.5),
+        ("Узбекистан",    63.0, 41.5),
+        ("Северная Корея",127.5, 40.5),
+        ("США",          195.0, 64.5),
+    ]
     lines = []
-    for name_ru, lon, lat in label_data:
+    for name_ru, lon, lat in FIXED_LABELS:
+        if not (LON0 <= lon <= LON1 and LAT1 <= lat <= LAT0):
+            continue
         x, y = geo_to_svg(lon, lat)
         xi, yi = int(round(x)), int(round(y))
         safe = name_ru.replace("&", "&amp;").replace("<", "&lt;")
@@ -743,70 +809,15 @@ def build_neighbor_labels_svg(label_data):
             f' font-family="Segoe UI, Arial, sans-serif"'
             f' font-size="115" font-style="italic" font-weight="400"'
             f' fill="#5a5040" text-anchor="middle" dominant-baseline="middle"'
-            f' opacity="0.55" letter-spacing="6" pointer-events="none"'
+            f' opacity="0.65" letter-spacing="6" pointer-events="none"'
             f'>{safe}</text>'
         )
     return "\n".join(lines)
 
 
 def build_grid_svg():
-    """Генерирует сетку параллелей и меридианов с подписями градусов."""
-    lines   = []
-    labels  = []
-
-    grid_color   = "#7090a8"
-    grid_opacity = "0.30"
-    stroke_w     = "7"
-    dash         = "60,50"
-    lbl_color    = "#3a5068"
-    lbl_size     = 115
-    lbl_opacity  = "0.65"
-    margin       = 90   # отступ подписей от края карты
-
-    # ── Параллели (горизонтальные линии) каждые 10° ───────────────────────
-    for lat in range(45, 82, 5):      # 45 50 55 60 65 70 75 80
-        if not (LAT1 <= lat <= LAT0):
-            continue
-        x1, y  = geo_to_svg(LON0, lat)
-        x2, _  = geo_to_svg(LON1, lat)
-        xi1, xi2, yi = int(x1), int(x2), int(y)
-
-        lines.append(
-            f'  <line x1="{xi1}" y1="{yi}" x2="{xi2}" y2="{yi}" '
-            f'stroke="{grid_color}" stroke-width="{stroke_w}" '
-            f'stroke-dasharray="{dash}" opacity="{grid_opacity}"/>'
-        )
-        # Подпись слева
-        labels.append(
-            f'  <text x="{xi1 - margin}" y="{yi}"'
-            f' font-family="Segoe UI, Arial, sans-serif" font-size="{lbl_size}"'
-            f' fill="{lbl_color}" text-anchor="end" dominant-baseline="middle"'
-            f' opacity="{lbl_opacity}" pointer-events="none">{lat}°с.ш.</text>'
-        )
-
-    # ── Меридианы (вертикальные линии) каждые 20° ─────────────────────────
-    for lon in range(20, 191, 20):    # 20 40 60 80 100 120 140 160 180
-        if not (LON0 <= lon <= LON1):
-            continue
-        x,  y1 = geo_to_svg(lon, LAT0)
-        _,  y2 = geo_to_svg(lon, LAT1)
-        xi, y1i, y2i = int(x), int(y1), int(y2)
-
-        lines.append(
-            f'  <line x1="{xi}" y1="{y1i}" x2="{xi}" y2="{y2i}" '
-            f'stroke="{grid_color}" stroke-width="{stroke_w}" '
-            f'stroke-dasharray="{dash}" opacity="{grid_opacity}"/>'
-        )
-        # Подпись снизу
-        deg_label = f"{lon}°в.д." if lon < 180 else "180°"
-        labels.append(
-            f'  <text x="{xi}" y="{y2i + margin + lbl_size}"'
-            f' font-family="Segoe UI, Arial, sans-serif" font-size="{lbl_size}"'
-            f' fill="{lbl_color}" text-anchor="middle" dominant-baseline="auto"'
-            f' opacity="{lbl_opacity}" pointer-events="none">{deg_label}</text>'
-        )
-
-    return "\n".join(lines + labels)
+    """Сетка отключена."""
+    return ""
 
 
 def build_sea_labels_svg():
@@ -1184,11 +1195,6 @@ def main():
 
   <!-- Фон — цвет моря -->
   <rect x="0" y="0" width="{VIEWBOX_W}" height="{VIEWBOX_H}" fill="{SEA_COLOR}"/>
-
-  <!-- Сетка параллелей и меридианов -->
-  <g id="grid" pointer-events="none">
-{grid_section}
-  </g>
 
   <!-- Соседние страны (диагональная штриховка) -->
   <g id="neighbors">
