@@ -4,7 +4,7 @@
     {
       "name": "karta",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "3200", "--directory", "E:\\karta"],
+      "runtimeArgs": ["-m", "http.server", "3200", "--directory", "E:\\map"],
       "port": 3200
     }
   ]

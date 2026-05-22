@@ -97,6 +97,83 @@ function buildBackground(svgEl) {
   // теперь генерируется скриптом build_svg.py и встроено прямо в russia.svg.
 }
 
+// ── Градусная сетка (параллели и меридианы) ───────────────────
+function buildGraticule(svgEl) {
+  const existing = svgEl.querySelector('#graticuleGroup');
+  if (existing) existing.remove();
+
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.setAttribute('id', 'graticuleGroup');
+  g.setAttribute('pointer-events', 'none'); // клики сквозь сетку
+
+  // Границы карты в SVG-координатах
+  const { x: xMin, y: yMin } = latLonToSvg(LAT0,              LON0);            // лев-верх
+  const { x: xMax, y: yMax } = latLonToSvg(LAT0 - LAT_RANGE,  LON0 + LON_RANGE); // прав-низ
+
+  const STROKE_W   = 22;          // толщина линий (~1.5px на экране)
+  const STROKE_CLR = '#5577aa';   // цвет сетки
+  const STROKE_OPA = '0.45';      // прозрачность линий
+  const DASH       = '90,55';     // пунктир
+  const FONT_SZ    = 260;         // размер подписей (~18px на экране)
+  const FONT_CLR   = '#33557a';
+  const FONT_OPA   = '0.85';
+  const PAD        = 70;          // отступ текста от края
+
+  const lineAttrs = (x1, y1, x2, y2) => {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    el.setAttribute('x1', x1); el.setAttribute('y1', y1);
+    el.setAttribute('x2', x2); el.setAttribute('y2', y2);
+    el.setAttribute('stroke',         STROKE_CLR);
+    el.setAttribute('stroke-width',   STROKE_W);
+    el.setAttribute('stroke-dasharray', DASH);
+    el.setAttribute('opacity',        STROKE_OPA);
+    el.setAttribute('fill',           'none');
+    return el;
+  };
+
+  const makeText = (x, y, txt, anchor = 'start') => {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    el.setAttribute('x', x); el.setAttribute('y', y);
+    el.setAttribute('font-size',   FONT_SZ);
+    el.setAttribute('font-family', 'Arial, sans-serif');
+    el.setAttribute('fill',        FONT_CLR);
+    el.setAttribute('opacity',     FONT_OPA);
+    el.setAttribute('text-anchor', anchor);
+    el.textContent = txt;
+    return el;
+  };
+
+  // ── Параллели (горизонтальные линии, каждые 10° широты) ──────
+  for (let lat = 50; lat <= 80; lat += 10) {
+    const { y } = latLonToSvg(lat, LON0);
+    g.appendChild(lineAttrs(xMin, y, xMax, y));
+    // Подпись слева
+    g.appendChild(makeText(xMin + PAD, y - PAD, lat + '°с.ш.', 'start'));
+  }
+
+  // ── Меридианы (вертикальные линии, каждые 10° долготы) ───────
+  for (let lon = 30; lon <= 180; lon += 10) {
+    if (lon < LON0 || lon > LON0 + LON_RANGE) continue;
+    const { x } = latLonToSvg(LAT0, lon);
+    g.appendChild(lineAttrs(x, yMin, x, yMax));
+    // Подпись снизу
+    g.appendChild(makeText(x, yMax - PAD, lon + '°в.д.', 'middle'));
+  }
+
+  // Вставляем сетку ПЕРЕД группой регионов (под регионами).
+  // Ищем прямого потомка svgEl, который содержит RU-пути.
+  const firstRuPath = svgEl.querySelector('path[id^="RU-"]');
+  let insertTarget = firstRuPath;
+  while (insertTarget && insertTarget.parentElement !== svgEl) {
+    insertTarget = insertTarget.parentElement;
+  }
+  if (insertTarget) {
+    svgEl.insertBefore(g, insertTarget);
+  } else {
+    svgEl.appendChild(g);
+  }
+}
+
 // ── Маркеры городов (рисуются поверх регионов прямо в SVG) ────
 function buildMarkers(svgEl) {
   if (!CONFIG || !CONFIG.regions) return;
@@ -205,6 +282,7 @@ async function loadSVG() {
     svgEl.setAttribute('height', '100%');
 
     buildBackground(svgEl);   // фон, моря, подписи — вставляется ДО всех путей
+    buildGraticule(svgEl);    // градусная сетка (под регионами)
     bindRegionClicks(svgEl);
     buildMarkers(svgEl);
 
