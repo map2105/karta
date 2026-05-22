@@ -160,18 +160,9 @@ function buildGraticule(svgEl) {
     g.appendChild(makeText(x, yMax - PAD, lon + '°в.д.', 'middle'));
   }
 
-  // Вставляем сетку ПЕРЕД группой регионов (под регионами).
-  // Ищем прямого потомка svgEl, который содержит RU-пути.
-  const firstRuPath = svgEl.querySelector('path[id^="RU-"]');
-  let insertTarget = firstRuPath;
-  while (insertTarget && insertTarget.parentElement !== svgEl) {
-    insertTarget = insertTarget.parentElement;
-  }
-  if (insertTarget) {
-    svgEl.insertBefore(g, insertTarget);
-  } else {
-    svgEl.appendChild(g);
-  }
+  // Вставляем сетку ПОСЛЕ группы регионов (поверх них, но под маркерами).
+  // buildMarkers() вызывается позже и сам добавит группу в конец.
+  svgEl.appendChild(g);
 }
 
 // ── Маркеры городов (рисуются поверх регионов прямо в SVG) ────
