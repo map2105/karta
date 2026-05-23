@@ -1,8 +1,5 @@
 {
-  "version": 2,
-  "routes": [
-    { "src": "/ping", "dest": "/api/ping.js" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/ping", "destination": "/api/ping" }
   ]
 }
