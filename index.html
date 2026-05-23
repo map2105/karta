@@ -3,15 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Интерактивная карта России</title>
+  <title>Карта России — Интерактивный атлас</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app">
 
     <header class="header">
-      <h1 class="header-title">Карта России</h1>
-      <span class="header-count" id="locationCount"></span>
+      <div class="header-brand">
+        <div class="header-logo">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="13" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+            <ellipse cx="14" cy="14" rx="5.5" ry="13" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+            <line x1="1.5" y1="14" x2="26.5" y2="14" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+            <line x1="1.5" y1="9" x2="26.5" y2="9" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+            <line x1="1.5" y1="19" x2="26.5" y2="19" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+            <circle cx="14" cy="14" r="13" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" fill="none"/>
+            <circle cx="14" cy="10" r="3" fill="#e8f4e8"/>
+            <circle cx="14" cy="10" r="1.5" fill="#ff4444"/>
+          </svg>
+        </div>
+        <div class="header-titles">
+          <h1 class="header-title">Карта России</h1>
+          <span class="header-subtitle">Интерактивный атлас</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="header-hint">
+          <span class="hint-icon">🖱</span>
+          <span>Колесо — масштаб · Перетащить — навигация</span>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="header-badge" id="locationCount"></div>
+        <button class="header-btn" id="resetViewBtn" title="Показать всю карту целиком">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1L7 13M1 7L13 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+          Вся карта
+        </button>
+        <button class="header-btn" id="fullscreenBtn" title="Полноэкранный режим">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M1 5V2a1 1 0 0 1 1-1h3M9 1h3a1 1 0 0 1 1 1v3M13 9v3a1 1 0 0 1-1 1H9M5 13H2a1 1 0 0 1-1-1V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <div class="content">
@@ -26,9 +68,32 @@
           <h2 class="sidebar-title" id="sidebarTitle"></h2>
           <button class="close-btn" id="closeBtn" title="Закрыть">✕</button>
         </div>
-        <ul class="file-list" id="fileList"></ul>
+        <div class="sidebar-body">
+          <p class="sidebar-description" id="sidebarDescription"></p>
+          <div class="sidebar-badges" id="sidebarBadges"></div>
+          <ul class="file-list" id="fileList"></ul>
+          <div class="sidebar-footer" id="sidebarFooter"></div>
+        </div>
       </aside>
 
+    </div>
+  </div>
+
+  <!-- ── Детальная страница региона ── -->
+  <div class="detail-overlay" id="detailOverlay">
+    <div class="detail-header">
+      <button class="detail-back-btn" id="detailBackBtn">← Назад</button>
+      <h2 class="detail-title" id="detailTitle"></h2>
+      <div class="detail-header-spacer"></div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-media-panel" id="detailMediaPanel">
+        <div class="detail-media-inner" id="detailMediaInner"></div>
+      </div>
+      <div class="detail-text-panel" id="detailTextPanel">
+        <div class="detail-text-content" id="detailTextContent"></div>
+        <div class="detail-extra-files" id="detailExtraFiles"></div>
+      </div>
     </div>
   </div>
 

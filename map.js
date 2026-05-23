@@ -4,6 +4,11 @@
 // ─────────────────────────────────────────────────────────────
 
 let activeRegion = null;
+let _graticuleObserver = null;   // ResizeObserver для пересчёта сетки
+let _svgEl = null;               // ссылка на загруженный SVG
+
+// Состояние zoom/pan инициализируется после объявления констант VIEWBOX_*
+let _vbX = 0, _vbY = 0, _vbW = 0, _vbH = 0;
 
 // ── Иконки по расширению файла ────────────────────────────────
 function fileIcon(path) {
@@ -19,6 +24,61 @@ function fileIcon(path) {
   return map[ext] || '📁';
 }
 
+// ── Категории файлов ──────────────────────────────────────────
+const EXT_VIDEO  = new Set(['mp4','avi','mkv','mov','wmv','webm']);
+const EXT_IMAGE  = new Set(['jpg','jpeg','png','gif','webp','bmp','svg']);
+const EXT_TEXT   = new Set(['txt','md']);
+const EXT_PPTX   = new Set(['ppt','pptx']);
+const EXT_PDF    = new Set(['pdf']);
+
+function extOf(path) { return (path || '').split('.').pop().toLowerCase().split('?')[0]; }
+function isVideo(path)  { return EXT_VIDEO.has(extOf(path)); }
+function isImage(path)  { return EXT_IMAGE.has(extOf(path)); }
+function isText(path)   { return EXT_TEXT.has(extOf(path)); }
+
+// ── Определение embed-источника (VK, Rutube и др.) ────────────
+// Возвращает { type: 'embed', embedUrl } или null
+function detectEmbed(file) {
+  // Явно задан тип embed в конфиге: { type: 'embed', path: '...' }
+  if (file.type === 'embed') return { embedUrl: file.path };
+
+  const url = file.path || '';
+
+  // VK Видео — форматы:
+  //   https://vkvideo.ru/video_ext.php?...
+  //   https://vk.com/video_ext.php?...
+  //   https://vk.com/video-XXXXX_XXXXX
+  if (/vk\.com\/video_ext|vkvideo\.ru\/video_ext/i.test(url)) {
+    return { embedUrl: url };
+  }
+  if (/vk\.com\/video[-_]?\d/i.test(url)) {
+    // Конвертируем ссылку на страницу в embed
+    const m = url.match(/video(-?\d+)_(\d+)/);
+    if (m) return { embedUrl: `https://vk.com/video_ext.php?oid=${m[1]}&id=${m[2]}&hd=2` };
+  }
+
+  // Rutube — форматы:
+  //   https://rutube.ru/video/HASH/
+  //   https://rutube.ru/play/embed/HASH
+  if (/rutube\.ru/i.test(url)) {
+    const embedMatch = url.match(/rutube\.ru\/(?:video|play\/embed)\/([a-f0-9]+)/i);
+    if (embedMatch) return { embedUrl: `https://rutube.ru/play/embed/${embedMatch[1]}` };
+  }
+
+  return null; // не embed
+}
+
+// Бейджи для типов файлов
+function badgeLabel(path) {
+  const ext = extOf(path);
+  if (EXT_VIDEO.has(ext))        return { icon: '🎬', label: 'Видео' };
+  if (EXT_PPTX.has(ext))        return { icon: '📊', label: 'Презентация' };
+  if (EXT_PDF.has(ext))         return { icon: '📄', label: 'PDF' };
+  if (EXT_IMAGE.has(ext))       return { icon: '🖼️',  label: 'Фото' };
+  if (EXT_TEXT.has(ext))        return { icon: '📝', label: 'Текст' };
+  return { icon: '📁', label: ext.toUpperCase() };
+}
+
 // ── Боковая панель ────────────────────────────────────────────
 function openSidebar(regionId) {
   // Снять выделение с предыдущего
@@ -27,37 +87,52 @@ function openSidebar(regionId) {
     if (prev) prev.classList.remove('active');
   }
 
-  // Выделить новый
   activeRegion = regionId;
   const el = document.getElementById(regionId);
   if (el) el.classList.add('active');
 
-  // Данные из config.js
-  const data = CONFIG.regions[regionId];
-  const name = data ? data.name : (el ? el.getAttribute('data-name') : regionId);
-  const files = data ? data.files : [];
+  const data  = CONFIG.regions[regionId];
+  const name  = data ? data.name : (el ? el.getAttribute('data-name') : regionId);
+  const files = (data && data.files) ? data.files : [];
+  const desc  = (data && data.description) ? data.description : '';
 
   document.getElementById('sidebarTitle').textContent = name;
 
+  // Описание
+  const descEl = document.getElementById('sidebarDescription');
+  descEl.textContent = desc;
+
+  // Бейджи — уникальные категории доступного контента
+  const badgesEl = document.getElementById('sidebarBadges');
+  badgesEl.innerHTML = '';
+  const seen = new Set();
+  files.forEach(f => {
+    const b = badgeLabel(f.path);
+    if (!seen.has(b.label)) {
+      seen.add(b.label);
+      const span = document.createElement('span');
+      span.className = 'sidebar-badge';
+      span.innerHTML = `<span class="badge-icon">${b.icon}</span>${b.label}`;
+      badgesEl.appendChild(span);
+    }
+  });
+
+  // Список файлов (скрыт, если есть кнопка «Подробнее»)
   const list = document.getElementById('fileList');
   list.innerHTML = '';
 
-  if (!files || files.length === 0) {
-    list.innerHTML = '<li class="empty-msg">Файлы не добавлены</li>';
+  // Кнопка «Подробнее»
+  const footer = document.getElementById('sidebarFooter');
+  footer.innerHTML = '';
+
+  if (files.length > 0) {
+    const btn = document.createElement('button');
+    btn.className = 'btn-detail';
+    btn.innerHTML = 'Подробнее <span class="btn-arrow">→</span>';
+    btn.onclick = () => openDetail(regionId);
+    footer.appendChild(btn);
   } else {
-    files.forEach(f => {
-      const ext = f.path.split('.').pop().toLowerCase();
-      const li  = document.createElement('li');
-      li.innerHTML = `
-        <a class="file-item" href="${f.path}" target="_blank">
-          <span class="file-icon">${fileIcon(f.path)}</span>
-          <span class="file-info">
-            <span class="file-name">${f.name}</span>
-            <span class="file-ext">${ext}</span>
-          </span>
-        </a>`;
-      list.appendChild(li);
-    });
+    list.innerHTML = '<li class="empty-msg">Материалы не добавлены</li>';
   }
 
   document.getElementById('sidebar').classList.add('open');
@@ -72,10 +147,152 @@ function closeSidebar() {
   }
 }
 
+// ── Детальная страница ────────────────────────────────────────
+function openDetail(regionId) {
+  const data  = CONFIG.regions[regionId];
+  if (!data) return;
+
+  const name  = data.name || regionId;
+  const files = data.files || [];
+
+  document.getElementById('detailTitle').textContent = name;
+
+  // ─ Левая панель: видео / embed / изображение / файл ──────────
+  const mediaInner = document.getElementById('detailMediaInner');
+  mediaInner.innerHTML = '';
+
+  // Ищем главный медиафайл: сначала embed/видео, потом картинку, потом документ
+  const mediaFile = files.find(f => detectEmbed(f) || isVideo(f.path) || isImage(f.path))
+                 || files.find(f => EXT_PPTX.has(extOf(f.path)))
+                 || files.find(f => EXT_PDF.has(extOf(f.path)));
+
+  if (mediaFile) {
+    const embed = detectEmbed(mediaFile);
+    if (embed) {
+      // ── VK Видео / Rutube / любой embed → iframe ────────────
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000';
+      const iframe = document.createElement('iframe');
+      iframe.src = embed.embedUrl;
+      iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
+      iframe.setAttribute('allowfullscreen', '');
+      iframe.setAttribute('allow', 'autoplay; fullscreen');
+      wrap.appendChild(iframe);
+      mediaInner.appendChild(wrap);
+    } else if (isVideo(mediaFile.path)) {
+      // ── Прямой mp4/webm (Cloudflare R2, CDN, локальный) ─────
+      const video = document.createElement('video');
+      video.src = mediaFile.path;
+      video.controls = true;
+      video.autoplay = false;
+      video.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#000';
+      mediaInner.appendChild(video);
+    } else if (isImage(mediaFile.path)) {
+      const img = document.createElement('img');
+      img.src = mediaFile.path;
+      img.alt = mediaFile.name;
+      mediaInner.appendChild(img);
+    } else {
+      // Презентация / PDF — заглушка с кнопкой открытия
+      const ph = document.createElement('div');
+      ph.className = 'media-placeholder';
+      ph.innerHTML = `
+        <div class="placeholder-icon">${fileIcon(mediaFile.path)}</div>
+        <div class="placeholder-name">${mediaFile.name}</div>
+        <div class="placeholder-hint">${extOf(mediaFile.path).toUpperCase()} — откройте в отдельном окне</div>
+        <a class="btn-open-file" href="${mediaFile.path}" target="_blank">Открыть файл ↗</a>`;
+      mediaInner.appendChild(ph);
+    }
+  } else {
+    mediaInner.innerHTML = `
+      <div class="no-media">
+        <div class="no-media-icon">🗺️</div>
+        <div>Медиафайлы не добавлены</div>
+      </div>`;
+  }
+
+  // ─ Правая панель: текст ────────────────────────────────────
+  const textContent = document.getElementById('detailTextContent');
+  textContent.innerHTML = '';
+
+  const h3 = document.createElement('h3');
+  h3.textContent = name;
+  textContent.appendChild(h3);
+
+  const body = document.createElement('div');
+  body.className = 'detail-text-body';
+
+  if (data.text) {
+    // Inline текст из конфига
+    body.textContent = data.text;
+    textContent.appendChild(body);
+  } else {
+    // Попробовать загрузить первый .txt файл
+    const txtFile = files.find(f => isText(f.path));
+    if (txtFile) {
+      body.className += ' detail-text-loading';
+      body.textContent = 'Загрузка…';
+      textContent.appendChild(body);
+      fetch(txtFile.path)
+        .then(r => r.ok ? r.text() : Promise.reject(r.status))
+        .then(t => { body.className = 'detail-text-body'; body.textContent = t; })
+        .catch(() => { body.className = 'detail-text-body detail-text-loading'; body.textContent = 'Не удалось загрузить файл.'; });
+    } else {
+      body.className += ' detail-text-loading';
+      body.textContent = 'Описание не добавлено.';
+      textContent.appendChild(body);
+    }
+  }
+
+  // ─ Дополнительные файлы (всё кроме главного медиа) ─────────
+  const extraEl = document.getElementById('detailExtraFiles');
+  extraEl.innerHTML = '';
+  const extras = files.filter(f => f !== mediaFile && !isText(f.path));
+  if (extras.length > 0) {
+    const title = document.createElement('div');
+    title.className = 'detail-extra-title';
+    title.textContent = 'Дополнительные материалы';
+    const ul = document.createElement('ul');
+    ul.className = 'detail-extra-list';
+    extras.forEach(f => {
+      const ext = extOf(f.path);
+      const li  = document.createElement('li');
+      li.className = 'detail-extra-item';
+      li.innerHTML = `
+        <a href="${f.path}" target="_blank">
+          <span class="file-icon">${fileIcon(f.path)}</span>
+          <span class="file-name">${f.name}</span>
+          <span class="file-ext">${ext}</span>
+        </a>`;
+      ul.appendChild(li);
+    });
+    extraEl.appendChild(title);
+    extraEl.appendChild(ul);
+  }
+
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail() {
+  const overlay = document.getElementById('detailOverlay');
+  overlay.classList.remove('open');
+  // Остановить видео если играет
+  const video = overlay.querySelector('video');
+  if (video) { video.pause(); video.src = ''; }
+}
+
 // ── Подсчёт регионов с файлами ────────────────────────────────
 function countLocations() {
   if (!CONFIG || !CONFIG.regions) return 0;
   return Object.values(CONFIG.regions).filter(r => r.files && r.files.length > 0).length;
+}
+
+function updateLocationBadge() {
+  const count = countLocations();
+  const el = document.getElementById('locationCount');
+  if (!el) return;
+  el.textContent = count > 0 ? `${count} локаций` : '';
+  el.style.display = count > 0 ? '' : 'none';
 }
 
 // ── Перевод lat/lon → SVG координаты (та же проекция что в build_svg.py) ──
@@ -98,40 +315,63 @@ function buildBackground(svgEl) {
 }
 
 // ── Градусная сетка (параллели и меридианы) ───────────────────
+// Рисуется отдельным SVG-оверлеем поверх карты — покрывает весь контейнер до краёв.
 function buildGraticule(svgEl) {
-  const existing = svgEl.querySelector('#graticuleGroup');
-  if (existing) existing.remove();
+  // Убрать старый оверлей если есть
+  const old = document.getElementById('graticuleOverlay');
+  if (old) old.remove();
 
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.setAttribute('id', 'graticuleGroup');
-  g.setAttribute('pointer-events', 'none'); // клики сквозь сетку
+  const container = document.getElementById('svgContainer');
+  if (!container) return;
 
-  // Границы карты в SVG-координатах
-  const { x: xMin, y: yMin } = latLonToSvg(LAT0,              LON0);            // лев-верх
-  const { x: xMax, y: yMax } = latLonToSvg(LAT0 - LAT_RANGE,  LON0 + LON_RANGE); // прав-низ
+  // offsetWidth/Height могут быть 0 до первого лэйаута — берём из родителя
+  const mapArea = container.parentElement;
+  const W = (container.offsetWidth  || mapArea?.offsetWidth  || window.innerWidth);
+  const H = (container.offsetHeight || mapArea?.offsetHeight || window.innerHeight);
 
-  const STROKE_W   = 22;          // толщина линий (~1.5px на экране)
-  const STROKE_CLR = '#5577aa';   // цвет сетки
-  const STROKE_OPA = '0.45';      // прозрачность линий
-  const DASH       = '90,55';     // пунктир
-  const FONT_SZ    = 260;         // размер подписей (~18px на экране)
+  // Учитываем текущий viewBox (zoom/pan).
+  // preserveAspectRatio="xMidYMid meet": контент вписывается по меньшей стороне.
+  const scale = Math.min(W / _vbW, H / _vbH);
+  const offX  = (W - _vbW * scale) / 2;
+  const offY  = (H - _vbH * scale) / 2;
+
+  // SVG-координата → пиксели экрана (с учётом pan/zoom)
+  function toPx(svgX, svgY) {
+    return [offX + (svgX - _vbX) * scale, offY + (svgY - _vbY) * scale];
+  }
+
+  // Оверлей — абсолютно позиционированный SVG на весь контейнер
+  const ov = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  ov.id = 'graticuleOverlay';
+  ov.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  ov.style.cssText = [
+    'position:absolute', 'top:0', 'left:0',
+    'width:100%', 'height:100%',
+    'pointer-events:none', 'overflow:visible',
+    'z-index:10'
+  ].join(';');
+
+  const STROKE_W   = 1.5;
+  const STROKE_CLR = '#5577aa';
+  const STROKE_OPA = '0.5';
+  const DASH       = '7,5';
+  const FONT_SZ    = 12;
   const FONT_CLR   = '#33557a';
-  const FONT_OPA   = '0.85';
-  const PAD        = 70;          // отступ текста от края
+  const FONT_OPA   = '0.9';
+  const PAD        = 4;
 
-  const lineAttrs = (x1, y1, x2, y2) => {
+  const addLine = (x1, y1, x2, y2) => {
     const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     el.setAttribute('x1', x1); el.setAttribute('y1', y1);
     el.setAttribute('x2', x2); el.setAttribute('y2', y2);
-    el.setAttribute('stroke',         STROKE_CLR);
-    el.setAttribute('stroke-width',   STROKE_W);
+    el.setAttribute('stroke',           STROKE_CLR);
+    el.setAttribute('stroke-width',     STROKE_W);
     el.setAttribute('stroke-dasharray', DASH);
-    el.setAttribute('opacity',        STROKE_OPA);
-    el.setAttribute('fill',           'none');
-    return el;
+    el.setAttribute('opacity',          STROKE_OPA);
+    ov.appendChild(el);
   };
 
-  const makeText = (x, y, txt, anchor = 'start') => {
+  const addText = (x, y, txt, anchor = 'start') => {
     const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     el.setAttribute('x', x); el.setAttribute('y', y);
     el.setAttribute('font-size',   FONT_SZ);
@@ -140,29 +380,103 @@ function buildGraticule(svgEl) {
     el.setAttribute('opacity',     FONT_OPA);
     el.setAttribute('text-anchor', anchor);
     el.textContent = txt;
-    return el;
+    ov.appendChild(el);
   };
 
-  // ── Параллели (горизонтальные линии, каждые 10° широты) ──────
-  for (let lat = 50; lat <= 80; lat += 10) {
-    const { y } = latLonToSvg(lat, LON0);
-    g.appendChild(lineAttrs(xMin, y, xMax, y));
-    // Подпись слева
-    g.appendChild(makeText(xMin + PAD, y - PAD, lat + '°с.ш.', 'start'));
+  const MARGIN = 16;  // отступ подписей от края экрана
+
+  // ── Параллели каждые 10° — подписи слева И справа ───────────
+  for (let lat = 40; lat <= 80; lat += 10) {
+    const { y: svgY } = latLonToSvg(lat, LON0);
+    const [, py] = toPx(0, svgY);
+    if (py < FONT_SZ || py > H - 2) continue;
+    addLine(0, py, W, py);
+    // Левая подпись
+    addText(MARGIN, py - 3, lat + '°', 'start');
+    // Правая подпись
+    addText(W - MARGIN, py - 3, lat + '°', 'end');
   }
 
-  // ── Меридианы (вертикальные линии, каждые 10° долготы) ───────
-  for (let lon = 30; lon <= 180; lon += 10) {
+  // ── Меридианы каждые 20° — подписи сверху И снизу ──────────
+  for (let lon = 20; lon <= 180; lon += 20) {
     if (lon < LON0 || lon > LON0 + LON_RANGE) continue;
-    const { x } = latLonToSvg(LAT0, lon);
-    g.appendChild(lineAttrs(x, yMin, x, yMax));
-    // Подпись снизу
-    g.appendChild(makeText(x, yMax - PAD, lon + '°в.д.', 'middle'));
+    const { x: svgX } = latLonToSvg(LAT0, lon);
+    const [px] = toPx(svgX, 0);
+    if (px < FONT_SZ * 2 || px > W - FONT_SZ * 2) continue;
+    addLine(px, 0, px, H);
+    // Верхняя подпись
+    addText(px, MARGIN + FONT_SZ, lon + '°', 'middle');
+    // Нижняя подпись
+    addText(px, H - MARGIN, lon + '°', 'middle');
   }
 
-  // Вставляем сетку ПОСЛЕ группы регионов (поверх них, но под маркерами).
-  // buildMarkers() вызывается позже и сам добавит группу в конец.
-  svgEl.appendChild(g);
+  // ── Линейный масштаб (в левом нижнем углу) ──────────────────
+  // Реальное расстояние рассчитывается на широте 60°N (средняя широта России).
+  // 1° долготы на 60°N = cos(60°) × 111.32 км = 55.66 км
+  const KM_PER_DEG = Math.cos(60 * Math.PI / 180) * 111.32;
+  // SVG-единиц на 1 км (на этой широте):
+  const svgUnitsPerKm = (SVG_PX_W / LON_RANGE) / KM_PER_DEG;
+  // Пикселей оверлея на 1 км:
+  const pxPerKm = svgUnitsPerKm * scale;
+
+  // Выбираем длину линейки автоматически под текущий зум.
+  // Целевая ширина бара ~150 пикселей; подбираем красивое число км.
+  const TARGET_PX = 150;
+  const rawKm = TARGET_PX / pxPerKm;
+  const NICE = [10,20,50,100,150,200,250,500,750,1000,1500,2000,2500,5000,7500,10000];
+  const BAR_KM = NICE.find(n => n * pxPerKm >= TARGET_PX * 0.7) || NICE[NICE.length - 1];
+  const barLen = BAR_KM * pxPerKm;
+
+  const bx   = W - MARGIN - 30 - barLen;
+  const by   = H - MARGIN - 28;
+  const tickH = 6;
+
+  const mkLine = (x1, y1, x2, y2, w = 1.8, clr = '#2c3e2d') => {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    el.setAttribute('x1', x1); el.setAttribute('y1', y1);
+    el.setAttribute('x2', x2); el.setAttribute('y2', y2);
+    el.setAttribute('stroke', clr); el.setAttribute('stroke-width', w);
+    ov.appendChild(el);
+  };
+  const mkTxt = (x, y, txt, anchor = 'middle', sz = 10) => {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    el.setAttribute('x', x); el.setAttribute('y', y);
+    el.setAttribute('font-size', sz); el.setAttribute('font-family', 'Arial, sans-serif');
+    el.setAttribute('fill', '#1a2e1a'); el.setAttribute('text-anchor', anchor);
+    el.textContent = txt; ov.appendChild(el);
+  };
+
+  // Фон-подложка
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('x', bx - 8);   bg.setAttribute('y', by - 18);
+  bg.setAttribute('width', barLen + 52); bg.setAttribute('height', 38);
+  bg.setAttribute('rx', 4);       bg.setAttribute('fill', 'rgba(255,255,255,0.82)');
+  ov.appendChild(bg);
+
+  // Деления: 0, BAR_KM/4, BAR_KM/2, BAR_KM
+  [0, 0.25, 0.5, 1].forEach(f => {
+    const km  = Math.round(BAR_KM * f);
+    const x   = bx + km * pxPerKm;
+    mkLine(x, by - tickH / 2, x, by + tickH);
+    mkTxt(x, by - tickH / 2 - 2, km === 0 ? '0' : km >= 1000 ? (km/1000) + ' тыс. км' : km + ' км');
+  });
+  mkLine(bx, by, bx + barLen, by, 1.8);
+
+  // Чёрно-белые блоки
+  [0, 0.25, 0.5, 0.75].forEach((f, i) => {
+    const rx = bx + BAR_KM * f * pxPerKm;
+    const rw = BAR_KM * 0.25 * pxPerKm;
+    const rb = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rb.setAttribute('x', rx); rb.setAttribute('y', by);
+    rb.setAttribute('width', rw); rb.setAttribute('height', tickH / 2);
+    rb.setAttribute('fill', i % 2 === 0 ? '#2c3e2d' : 'white');
+    rb.setAttribute('stroke', '#2c3e2d'); rb.setAttribute('stroke-width', '0.5');
+    ov.appendChild(rb);
+  });
+
+  mkTxt(bx + barLen / 2, by + tickH + 10, 'Масштаб (на 60° с.ш.)', 'middle', 9);
+
+  container.appendChild(ov);
 }
 
 // ── Маркеры городов (рисуются поверх регионов прямо в SVG) ────
@@ -243,6 +557,132 @@ function bindRegionClicks(svgEl) {
   });
 }
 
+// ── Zoom / Pan ────────────────────────────────────────────────
+function bindZoomPan(svgEl, container) {
+  _svgEl = svgEl;
+
+  // ── Два уровня обновления ─────────────────────────────────────
+  // applyViewBox — только атрибут viewBox, мгновенно (~0.1 мс)
+  // applyView    — viewBox + перестройка сетки, вызывать только после окончания жеста
+  function applyViewBox() {
+    svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
+  }
+  function applyView() {
+    applyViewBox();
+    buildGraticule(svgEl);
+  }
+
+  // Конвертировать клиентские координаты в SVG-пространство
+  // rect передаём снаружи чтобы не вызывать getBoundingClientRect лишний раз
+  function clientToSvg(clientX, clientY, rect) {
+    const sc   = Math.min(rect.width / _vbW, rect.height / _vbH);
+    const offX = (rect.width  - _vbW * sc) / 2;
+    const offY = (rect.height - _vbH * sc) / 2;
+    return {
+      x: _vbX + (clientX - rect.left - offX) / sc,
+      y: _vbY + (clientY - rect.top  - offY) / sc,
+    };
+  }
+
+  function clampView() {
+    _vbX = Math.max(0, Math.min(VIEWBOX_W - _vbW, _vbX));
+    _vbY = Math.max(0, Math.min(VIEWBOX_H - _vbH, _vbY));
+  }
+
+  // ── Колесо мыши: зум ─────────────────────────────────────────
+  // Во время скролла обновляем только viewBox; сетку перестраиваем
+  // один раз через 150 мс после последнего события колеса.
+  let _wheelTimer = null;
+
+  container.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 0.8 : 1.25;
+    const rect   = container.getBoundingClientRect();
+    const { x: mx, y: my } = clientToSvg(e.clientX, e.clientY, rect);
+
+    const newW = Math.min(VIEWBOX_W, Math.max(VIEWBOX_W * 0.05, _vbW * factor));
+    const newH = newW * (VIEWBOX_H / VIEWBOX_W);
+    const r    = newW / _vbW;
+
+    _vbX = mx - (mx - _vbX) * r;
+    _vbY = my - (my - _vbY) * r;
+    _vbW = newW;
+    _vbH = newH;
+    clampView();
+    applyViewBox();   // ← только атрибут, без сетки
+
+    clearTimeout(_wheelTimer);
+    _wheelTimer = setTimeout(() => buildGraticule(svgEl), 150);
+  }, { passive: false });
+
+  // ── Перетаскивание мышью ──────────────────────────────────────
+  // Ключевые оптимизации:
+  //   1. scale вычисляется один раз на mousedown (не меняется во время drag)
+  //   2. viewBox обновляется через requestAnimationFrame — не чаще 60 fps
+  //   3. getBoundingClientRect вызывается один раз на mousedown
+  //   4. buildGraticule вызывается один раз на mouseup
+  let dragging    = false;
+  let didDrag     = false;
+  let _dragVbX0   = 0, _dragVbY0   = 0;   // viewBox в момент начала drag
+  let _dragCX0    = 0, _dragCY0    = 0;   // курсор в начале drag (client px)
+  let _dragScale  = 1;                     // px → SVG-единицы (константа для всего drag)
+  let _rafPending = false;
+
+  container.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragging   = true;
+    didDrag    = false;
+    _dragVbX0  = _vbX;
+    _dragVbY0  = _vbY;
+    _dragCX0   = e.clientX;
+    _dragCY0   = e.clientY;
+    // scale не изменится пока не начнётся zoom — вычисляем один раз
+    const rect = container.getBoundingClientRect();
+    _dragScale = Math.min(rect.width / _vbW, rect.height / _vbH);
+    container.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - _dragCX0;
+    const dy = e.clientY - _dragCY0;
+    _vbX = _dragVbX0 - dx / _dragScale;
+    _vbY = _dragVbY0 - dy / _dragScale;
+    clampView();
+    didDrag = true;
+    // Один DOM-апдейт за кадр — лишние mousemove пропускаем
+    if (!_rafPending) {
+      _rafPending = true;
+      requestAnimationFrame(() => {
+        applyViewBox();
+        _rafPending = false;
+      });
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    container.style.cursor = 'grab';
+    if (didDrag) buildGraticule(svgEl);
+  });
+
+  // ── Двойной клик: сброс вида ─────────────────────────────────
+  container.addEventListener('dblclick', e => {
+    if (e.target.closest('path[id^="RU-"]')) return;
+    _vbX = 0; _vbY = 0; _vbW = VIEWBOX_W; _vbH = VIEWBOX_H;
+    applyView();
+  });
+
+  // Предотвратить клик по карте после перетаскивания
+  container.addEventListener('click', e => {
+    if (didDrag) { e.stopPropagation(); didDrag = false; }
+  }, true);
+
+  container.style.cursor = 'grab';
+}
+
 // ── Загрузка SVG инлайн ───────────────────────────────────────
 async function loadSVG() {
   const container = document.getElementById('svgContainer');
@@ -272,10 +712,21 @@ async function loadSVG() {
     svgEl.setAttribute('width', '100%');
     svgEl.setAttribute('height', '100%');
 
-    buildBackground(svgEl);   // фон, моря, подписи — вставляется ДО всех путей
-    buildGraticule(svgEl);    // градусная сетка (под регионами)
+    // Сбрасываем viewBox в исходное состояние при каждой загрузке
+    _vbX = 0; _vbY = 0; _vbW = VIEWBOX_W; _vbH = VIEWBOX_H;
+
+    buildBackground(svgEl);
     bindRegionClicks(svgEl);
     buildMarkers(svgEl);
+    bindZoomPan(svgEl, container);
+
+    // Сетку строим после первого лэйаута
+    requestAnimationFrame(() => buildGraticule(svgEl));
+
+    // Пересчитываем сетку при изменении размера карты (открытие/закрытие панели)
+    if (_graticuleObserver) _graticuleObserver.disconnect();
+    _graticuleObserver = new ResizeObserver(() => buildGraticule(svgEl));
+    _graticuleObserver.observe(container);
 
     // Клик по фону карты (не по region) закрывает панель
     svgEl.addEventListener('click', () => closeSidebar());
@@ -293,15 +744,43 @@ async function loadSVG() {
 
 // ── Инициализация ─────────────────────────────────────────────
 function init() {
-  const count = countLocations();
-  document.getElementById('locationCount').textContent =
-    count > 0 ? count + ' локаций' : '';
-
+  updateLocationBadge();
   loadSVG();
 
   document.getElementById('closeBtn').addEventListener('click', e => {
     e.stopPropagation();
     closeSidebar();
+  });
+
+  document.getElementById('detailBackBtn').addEventListener('click', closeDetail);
+
+  // Кнопка «Вся карта» — сброс вида
+  document.getElementById('resetViewBtn').addEventListener('click', () => {
+    _vbX = 0; _vbY = 0; _vbW = VIEWBOX_W; _vbH = VIEWBOX_H;
+    if (_svgEl) {
+      _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
+      buildGraticule(_svgEl);
+    }
+    closeSidebar();
+  });
+
+  // Кнопка полноэкранного режима
+  const fsBtn = document.getElementById('fullscreenBtn');
+  fsBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  });
+
+  // Меняем иконку кнопки в зависимости от режима
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    fsBtn.title = isFs ? 'Выйти из полноэкранного режима' : 'Полноэкранный режим';
+    fsBtn.querySelector('svg').innerHTML = isFs
+      ? `<path d="M5 1v3a1 1 0 0 1-1 1H1M9 1v3a1 1 0 0 0 1 1h3M1 9h3a1 1 0 0 1 1 1v3M13 9h-3a1 1 0 0 0-1 1v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>`
+      : `<path d="M1 5V2a1 1 0 0 1 1-1h3M9 1h3a1 1 0 0 1 1 1v3M13 9v3a1 1 0 0 1-1 1H9M5 13H2a1 1 0 0 1-1-1V9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>`;
   });
 }
 
