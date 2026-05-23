@@ -1,8 +1,4 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/ping.js", "use": "@vercel/node" }
-  ],
   "rewrites": [
     { "source": "/ping", "destination": "/api/ping" }
   ]
