@@ -1048,20 +1048,19 @@ def build_rivers_svg():
                     elif angle < -90:
                         angle += 180
 
-                    fsize  = max(85, 148 - scalerank * 14)
+                    fsize  = max(52, 88 - scalerank * 9)
                     rotate = f' transform="rotate({angle:.1f},{int(mx)},{int(my)})"'
                     safe_lbl = name_ru.replace("&", "&amp;").replace("<", "&lt;")
-                    # Белая обводка (halo) для читаемости на любом фоне.
-                    # paint-order="stroke fill" — сначала обводка, потом заливка.
+                    # Тонкая белая подложка — только чтобы отделить от фона.
                     label_lines.append(
                         f'  <text x="{int(mx)}" y="{int(my) - fsize // 4}"'
                         f' font-family="Segoe UI, Arial, sans-serif"'
-                        f' font-size="{fsize}" font-style="italic" font-weight="500"'
-                        f' fill="#1a4a7a"'
-                        f' stroke="rgba(255,255,255,0.92)" stroke-width="16"'
+                        f' font-size="{fsize}" font-style="italic" font-weight="400"'
+                        f' fill="#4a7a9b"'
+                        f' stroke="rgba(255,255,255,0.75)" stroke-width="8"'
                         f' paint-order="stroke fill"'
                         f' text-anchor="middle" dominant-baseline="middle"'
-                        f' opacity="0.95" letter-spacing="4" pointer-events="none"'
+                        f' opacity="0.78" letter-spacing="2" pointer-events="none"'
                         f'{rotate}>{safe_lbl}</text>'
                     )
 
