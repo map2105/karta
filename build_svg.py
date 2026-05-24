@@ -10,6 +10,7 @@ import sys, io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 import json
+import math
 import os
 import urllib.request
 
@@ -127,6 +128,91 @@ SEA_COLOR     = "#b8d4e8"   # цвет моря (фон SVG)
 # Соседи — очень светлая почти-серая штриховка, чтобы Россия выделялась
 NEIGHBOR_FILL = "#e8e5dc"   # светлее и нейтральнее
 NEIGHBOR_LINE = "#cec9bc"   # очень слабые линии
+
+# ── Реки (Natural Earth rivers) ──────────────────────────────────────────────
+# Сначала 10m (детальные), потом 50m как запасной вариант
+RIVERS_GEOJSON_URLS = [
+    "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_rivers_lake_centerlines.geojson",
+    "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_rivers_lake_centerlines.geojson",
+]
+
+# Пороговый ранг: 0 = крупнейшие реки, 12 = мелкие ручьи
+# На карте России при 10m хорошо видны 0–9
+RIVER_MAX_SCALERANK = 9
+
+# Перевод английских названий Natural Earth → русский
+RIVER_NAMES_RU = {
+    "Volga":              "Волга",
+    "Ob":                 "Обь",
+    "Ob'":                "Обь",
+    "Irtysh":             "Иртыш",
+    "Yenisey":            "Енисей",
+    "Yenisei":            "Енисей",
+    "Lena":               "Лена",
+    "Amur":               "Амур",
+    "Kolyma":             "Колыма",
+    "Indigirka":          "Индигирка",
+    "Yana":               "Яна",
+    "Aldan":              "Алдан",
+    "Vilyuy":             "Вилюй",
+    "Vilyui":             "Вилюй",
+    "Angara":             "Ангара",
+    "Pechora":            "Печора",
+    "Northern Dvina":     "Сев. Двина",
+    "Severnaya Dvina":    "Сев. Двина",
+    "Ural":               "Урал",
+    "Don":                "Дон",
+    "Kama":               "Кама",
+    "Oka":                "Ока",
+    "Tobol":              "Тобол",
+    "Ishim":              "Ишим",
+    "Tom":                "Томь",
+    "Chulym":             "Чулым",
+    "Lower Tunguska":     "Н. Тунгуска",
+    "Stony Tunguska":     "П. Тунгуска",
+    "Selenga":            "Селенга",
+    "Vitim":              "Витим",
+    "Olekma":             "Олёкма",
+    "Zeya":               "Зея",
+    "Bureya":             "Бурея",
+    "Ussuri":             "Уссури",
+    "Anadyr":             "Анадырь",
+    "Mezen":              "Мезень",
+    "Onega":              "Онега",
+    "Neva":               "Нева",
+    "Kuban":              "Кубань",
+    "Terek":              "Терек",
+    "Belaya":             "Белая",
+    "Vyatka":             "Вятка",
+    "Maya":               "Мая",
+    "Amgun":              "Амгунь",
+    "Kamchatka":          "Камчатка",
+    "Penzhina":           "Пенжина",
+    "Vasyugan":           "Васюган",
+    "Ob-Irtysh":          "Обь-Иртыш",
+    "Dnieper":            "Днепр",
+    "Svir":               "Свирь",
+    "Vakh":               "Вах",
+    "Ket":                "Кеть",
+    "Tym":                "Тым",
+    "Tara":               "Тара",
+    "Barguzin":           "Баргузин",
+    "Abakan":             "Абакан",
+    "Katun":              "Катунь",
+    "Biya":               "Бия",
+    "Sozh":               "Сож",
+    "Berezina":           "Березина",
+    "Uchur":              "Учур",
+    "Tugur":              "Тугур",
+    "Okhota":             "Охота",
+    "Uda":                "Уда",
+    "Amga":               "Амга",
+    "Timpton":            "Тимптон",
+    "Chara":              "Чара",
+    "Mana":               "Мана",
+    "Kan":                "Кан",
+    "Vasiugan":           "Васюган",
+}
 
 # ── Ручные позиции подписей стран (lon, lat) — для точного размещения ─────
 # Если страна есть здесь — используем эту точку, иначе вычисляем автоматически
@@ -584,6 +670,40 @@ def rdp(points, epsilon=1.5):
     return [start, end]
 
 
+# ── LineString координат → SVG-путь (для рек) ─────────────────────────────
+def linestring_to_svg_path(coords, epsilon=4.0):
+    """GeoJSON LineString coords → строка SVG 'd'.
+    Разбивает на отдельные сегменты в местах, где река выходит за viewport."""
+    VLON_MIN = LON0 - 15
+    VLON_MAX = LON1 + 15
+    VLAT_MIN = LAT1 - 8
+    VLAT_MAX = LAT0 + 5
+
+    segments = []
+    cur = []
+    for c in coords:
+        lon = c[0] + (360 if c[0] < 0 else 0)
+        lat = float(c[1])
+        if VLON_MIN <= lon <= VLON_MAX and VLAT_MIN <= lat <= VLAT_MAX:
+            cur.append(geo_to_svg(lon, lat))
+        else:
+            if len(cur) >= 2:
+                segments.append(cur)
+            cur = []
+    if len(cur) >= 2:
+        segments.append(cur)
+
+    parts = []
+    for seg in segments:
+        pts = rdp(seg, epsilon=epsilon)
+        if len(pts) < 2:
+            continue
+        d = f"M {pts[0][0]},{pts[0][1]}"
+        d += " L " + " ".join(f"{p[0]},{p[1]}" for p in pts[1:])
+        parts.append(d)
+    return " ".join(parts)
+
+
 # ── Кольцо координат → строка SVG-пути ────────────────────────────────────
 def ring_to_path(coords):
     # GeoJSON-кольца замкнуты (last == first) — убираем последнюю точку
@@ -846,6 +966,102 @@ def build_sea_labels_svg():
             f'{rotate}>{safe}</text>'
         )
     return "\n".join(lines)
+
+
+def build_rivers_svg():
+    """Загружает реки Natural Earth и генерирует SVG-пути и подписи."""
+    print("\n5. Загружаем реки (Natural Earth 10m)...")
+    rivers_data = load_geojson_from(RIVERS_GEOJSON_URLS, "рек")
+    if not rivers_data:
+        print("  [!] Не удалось загрузить данные рек — пропускаем.")
+        return "", ""
+
+    features = rivers_data.get("features", [])
+    print(f"  Всего объектов: {len(features)}")
+
+    river_paths  = []
+    label_lines  = []
+    labeled      = set()   # чтобы не дублировать подписи одной реки
+    seg_count    = 0
+
+    for feature in features:
+        props = feature.get("properties", {})
+        geom  = feature.get("geometry")
+        if not geom:
+            continue
+
+        scalerank = int(props.get("scalerank", 99))
+        if scalerank > RIVER_MAX_SCALERANK:
+            continue
+
+        name    = (props.get("name") or props.get("NAME") or "").strip()
+        name_ru = RIVER_NAMES_RU.get(name, "")
+
+        gtype = geom["type"]
+        if gtype == "LineString":
+            all_coords = [geom["coordinates"]]
+        elif gtype == "MultiLineString":
+            all_coords = geom["coordinates"]
+        else:
+            continue
+
+        for coords in all_coords:
+            path_d = linestring_to_svg_path(coords, epsilon=4.0)
+            if not path_d:
+                continue
+
+            # Толщина линии пропорциональна важности реки
+            sw = max(5, 28 - scalerank * 3)
+
+            safe_name = (name_ru or name).replace('"', "'").replace("&", "&amp;")
+            river_paths.append(
+                f'  <path class="river" data-name="{safe_name}" '
+                f'stroke="#3a7fc1" stroke-width="{sw}" fill="none" '
+                f'opacity="0.65" stroke-linecap="round" stroke-linejoin="round" '
+                f'pointer-events="none" '
+                f'd="{path_d}"/>'
+            )
+            seg_count += 1
+
+            # ── Подпись (только для значимых рек с именем, одна на реку) ────
+            if name_ru and scalerank <= 5 and name not in labeled:
+                labeled.add(name)
+                # Собираем все видимые точки (строго внутри viewport)
+                vis_pts = []
+                for c in coords:
+                    lon = c[0] + (360 if c[0] < 0 else 0)
+                    lat = float(c[1])
+                    if LON0 - 2 <= lon <= LON1 + 2 and LAT1 - 2 <= lat <= LAT0 + 2:
+                        vis_pts.append(geo_to_svg(lon, lat))
+
+                if len(vis_pts) >= 4:
+                    mid_idx = len(vis_pts) // 2
+                    mx, my  = vis_pts[mid_idx]
+
+                    # Угол наклона подписи по направлению реки
+                    p1 = vis_pts[max(0, mid_idx - 3)]
+                    p2 = vis_pts[min(len(vis_pts) - 1, mid_idx + 3)]
+                    angle = math.degrees(math.atan2(p2[1] - p1[1], p2[0] - p1[0]))
+                    # Ограничиваем: текст всегда читается слева направо
+                    if angle > 90:
+                        angle -= 180
+                    elif angle < -90:
+                        angle += 180
+
+                    fsize  = max(70, 130 - scalerank * 14)
+                    rotate = f' transform="rotate({angle:.1f},{int(mx)},{int(my)})"'
+                    safe_lbl = name_ru.replace("&", "&amp;").replace("<", "&lt;")
+                    label_lines.append(
+                        f'  <text x="{int(mx)}" y="{int(my) - fsize // 4}"'
+                        f' font-family="Segoe UI, Arial, sans-serif"'
+                        f' font-size="{fsize}" font-style="italic" font-weight="400"'
+                        f' fill="#1a4a7a" text-anchor="middle" dominant-baseline="middle"'
+                        f' opacity="0.80" letter-spacing="3" pointer-events="none"'
+                        f'{rotate}>{safe_lbl}</text>'
+                    )
+
+    print(f"  Добавлено речных сегментов: {seg_count}, подписей: {len(label_lines)}")
+    return "\n".join(river_paths), "\n".join(label_lines)
 
 
 def build_defs_svg():
@@ -1179,8 +1395,11 @@ def main():
     neighbor_labels_section = build_neighbor_labels_svg(label_data)
     sea_labels_section      = build_sea_labels_svg()
 
+    # ── Шаг 5: реки ───────────────────────────────────────────────────────────
+    rivers_section, river_labels_section = build_rivers_svg()
+
     # ── Шаг 5: записываем SVG ─────────────────────────────────────────────────
-    print(f"\n4. Записываем SVG ({len(paths_svg)} регионов, "
+    print(f"\n6. Записываем SVG ({len(paths_svg)} регионов, "
           f"{len(neighbor_paths)} соседних стран)...")
 
     nl = chr(10)
@@ -1209,6 +1428,16 @@ def main():
   <!-- Регионы России -->
   <g id="russia">
 {nl.join(paths_svg)}
+  </g>
+
+  <!-- Реки -->
+  <g id="rivers">
+{rivers_section}
+  </g>
+
+  <!-- Подписи рек -->
+  <g id="riverLabels" pointer-events="none">
+{river_labels_section}
   </g>
 
   <!-- Подписи морей и океанов -->
