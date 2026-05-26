@@ -270,6 +270,10 @@ function openDetail(regionId) {
     extraEl.appendChild(ul);
   }
 
+  // ─ Мини-карта региона (под плеером) ────────────────────────
+  const regionInfo = document.getElementById('detailRegionInfo');
+  buildRegionMiniMap(regionId, regionInfo);
+
   document.getElementById('detailOverlay').classList.add('open');
 }
 
@@ -477,6 +481,52 @@ function buildGraticule(svgEl) {
   mkTxt(bx + barLen / 2, by + tickH + 10, 'Масштаб (на 60° с.ш.)', 'middle', 9);
 
   container.appendChild(ov);
+}
+
+// ── Мини-карта региона (для детальной страницы) ───────────────
+function buildRegionMiniMap(regionId, container) {
+  if (!container) return;
+
+  const svgEl = document.querySelector('#svgContainer svg');
+  if (!svgEl) { container.innerHTML = ''; return; }
+
+  // Используем displayRegion из конфига если задан (напр. для Москвы → RU-MOS)
+  const data         = CONFIG.regions[regionId] || {};
+  const displayId    = data.displayRegion || regionId;
+  const regionPath   = svgEl.querySelector('#' + displayId);
+  if (!regionPath) { container.innerHTML = ''; return; }
+
+  // Квадратный viewBox — все регионы выглядят одного размера
+  const bbox    = regionPath.getBBox();
+  const size    = Math.max(bbox.width, bbox.height);
+  const pad     = size * 0.06 + 18;
+  const total   = size + pad * 2;
+  const cx      = bbox.x + bbox.width  / 2;
+  const cy      = bbox.y + bbox.height / 2;
+  const vbX     = cx - total / 2;
+  const vbY     = cy - total / 2;
+  const vbW     = total;
+  const vbH     = total;
+
+  const ns = 'http://www.w3.org/2000/svg';
+
+  const mini = document.createElementNS(ns, 'svg');
+  mini.setAttribute('viewBox', `${vbX} ${vbY} ${vbW} ${vbH}`);
+  mini.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  mini.style.cssText = 'display:block;';
+
+  // ── Форма региона — оригинальный цвет, тонкая тёмная граница ─
+  const shape = regionPath.cloneNode(false);
+  shape.removeAttribute('class');
+  const st        = regionPath.getAttribute('style') || '';
+  const fillMatch = st.match(/fill\s*:\s*([^;]+)/);
+  const origFill  = fillMatch ? fillMatch[1].trim() : '#7ab648';
+  shape.setAttribute('style',
+    `fill:${origFill};stroke:rgba(0,0,0,0.45);stroke-width:5;`);
+  mini.appendChild(shape);
+
+  container.innerHTML = '';
+  container.appendChild(mini);
 }
 
 // ── Маркеры городов (рисуются поверх регионов прямо в SVG) ────
