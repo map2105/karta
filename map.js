@@ -635,8 +635,11 @@ function bindZoomPan(svgEl, container) {
   }
 
   function clampView() {
-    _vbX = Math.max(0, Math.min(VIEWBOX_W - _vbW, _vbX));
-    _vbY = Math.max(0, Math.min(VIEWBOX_H - _vbH, _vbY));
+    // Запас слева/сверху чтобы западные регионы (Калининград, СПб)
+    // и соседние страны не обрезались «стенкой» при зуме.
+    // Справа/снизу запас не нужен — там уже есть поле в viewBox.
+    _vbX = Math.max(-600, Math.min(VIEWBOX_W - _vbW, _vbX));
+    _vbY = Math.max(-300, Math.min(VIEWBOX_H - _vbH, _vbY));
   }
 
   // ── Колесо мыши: зум ─────────────────────────────────────────
@@ -761,6 +764,10 @@ async function loadSVG() {
     // SVG должен занимать весь контейнер
     svgEl.setAttribute('width', '100%');
     svgEl.setAttribute('height', '100%');
+    // overflow:visible — контент за краями viewBox (соседние страны
+    // уходящие в отрицательные x-координаты) должен рендериться,
+    // фон .map-area (тот же цвет моря #b8d4e8) подхватывает справа/снизу
+    svgEl.style.overflow = 'visible';
 
     // Сбрасываем viewBox в исходное состояние при каждой загрузке
     _vbX = 0; _vbY = 0; _vbW = VIEWBOX_W; _vbH = VIEWBOX_H;
