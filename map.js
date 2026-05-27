@@ -9,6 +9,9 @@ let _svgEl = null;               // ссылка на загруженный SVG
 
 // Состояние zoom/pan инициализируется после объявления констант VIEWBOX_*
 let _vbX = 0, _vbY = 0, _vbW = 0, _vbH = 0;
+// Ширина viewBox для полного вида — вычисляется один раз при первой загрузке.
+// Фиксирована, чтобы Россия выглядела одинаково в обычном и полноэкранном режиме.
+let _fullVbW = 0;
 
 // ── Иконки по расширению файла ────────────────────────────────
 function fileIcon(path) {
@@ -304,6 +307,40 @@ const SVG_X0    = 103,   SVG_Y0    = 103;
 const SVG_PX_W  = 20326, SVG_PX_H  = 9667;
 const LON0 = 20, LAT0 = 81, LON_RANGE = 170, LAT_RANGE = 40;
 const VIEWBOX_W = 20955, VIEWBOX_H = 11530;
+
+// Вычислить полный вид под текущий размер контейнера.
+//
+// _fullVbW инициализируется один раз (при первом вызове) по формуле xMidYMid meet —
+// это даёт точно тот же начальный масштаб карты, что и в оригинале.
+// После этого _fullVbW остаётся постоянным: ширина viewBox не меняется при ресайзе/
+// фуллскрине → Россия одинакового размера в обычном и полноэкранном режиме.
+// При изменении высоты контейнера адаптируется только vbH (видно больше/меньше
+// карты сверху/снизу), vbX/vbY центрируются.
+function computeFullViewBox() {
+  const el = document.getElementById('svgContainer');
+  const cW = el ? el.offsetWidth  : window.innerWidth;
+  const cH = el ? el.offsetHeight : Math.max(window.innerHeight - 58, 1);
+
+  // Ленивая инициализация _fullVbW: масштаб как при xMidYMid meet.
+  if (!_fullVbW && cW > 0 && cH > 0) {
+    const scale = Math.min(cW / VIEWBOX_W, cH / VIEWBOX_H);
+    _fullVbW = Math.round(cW / scale);
+  }
+  const fvW = _fullVbW || VIEWBOX_W;  // fallback на случай cW=0 при ранней инициализации
+
+  // vbH адаптируется к текущей высоте контейнера; vbW постоянен.
+  const vbH = cW > 0 ? Math.round(fvW * (cH / cW)) : VIEWBOX_H;
+  const vbX = Math.round((VIEWBOX_W - fvW) / 2);
+  const vbY = Math.round((VIEWBOX_H - vbH) / 2);
+  return { vbX, vbY, vbW: fvW, vbH };
+}
+
+// Применить полный вид (обновляет глобальные _vbX/Y/W/H и viewBox SVG).
+function applyFullView() {
+  const fv = computeFullViewBox();
+  _vbX = fv.vbX; _vbY = fv.vbY; _vbW = fv.vbW; _vbH = fv.vbH;
+  if (_svgEl) _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
+}
 
 function latLonToSvg(lat, lon) {
   const x = SVG_X0 + (lon - LON0) / LON_RANGE * SVG_PX_W;
@@ -635,11 +672,18 @@ function bindZoomPan(svgEl, container) {
   }
 
   function clampView() {
-    // Запас слева/сверху чтобы западные регионы (Калининград, СПб)
-    // и соседние страны не обрезались «стенкой» при зуме.
-    // Справа/снизу запас не нужен — там уже есть поле в viewBox.
-    _vbX = Math.max(-600, Math.min(VIEWBOX_W - _vbW, _vbX));
-    _vbY = Math.max(-300, Math.min(VIEWBOX_H - _vbH, _vbY));
+    // При полном масштабе — перетаскивание отключено; применяем полный вид.
+    const fvW = computeFullViewBox().vbW;
+    if (_vbW >= fvW) {
+      applyFullView();
+      return;
+    }
+    // При зуме: небольшой запас за левый/верхний край (для Калининграда,
+    // западных регионов). Справа/снизу запас не нужен — там уже есть поле.
+    const padX = Math.min(400, _vbW * 0.10);
+    const padY = Math.min(200, _vbH * 0.10);
+    _vbX = Math.max(-padX, Math.min(VIEWBOX_W - _vbW + padX, _vbX));
+    _vbY = Math.max(-padY, Math.min(VIEWBOX_H - _vbH + padY, _vbY));
   }
 
   // ── Колесо мыши: зум ─────────────────────────────────────────
@@ -653,7 +697,8 @@ function bindZoomPan(svgEl, container) {
     const rect   = container.getBoundingClientRect();
     const { x: mx, y: my } = clientToSvg(e.clientX, e.clientY, rect);
 
-    const newW = Math.min(VIEWBOX_W, Math.max(VIEWBOX_W * 0.05, _vbW * factor));
+    const fvW  = computeFullViewBox().vbW;
+    const newW = Math.min(fvW, Math.max(fvW * 0.05, _vbW * factor));
     const newH = newW * (VIEWBOX_H / VIEWBOX_W);
     const r    = newW / _vbW;
 
@@ -724,8 +769,8 @@ function bindZoomPan(svgEl, container) {
   // ── Двойной клик: сброс вида ─────────────────────────────────
   container.addEventListener('dblclick', e => {
     if (e.target.closest('path[id^="RU-"]')) return;
-    _vbX = 0; _vbY = 0; _vbW = VIEWBOX_W; _vbH = VIEWBOX_H;
-    applyView();
+    applyFullView();
+    buildGraticule(svgEl);
   });
 
   // Предотвратить клик по карте после перетаскивания
@@ -764,13 +809,11 @@ async function loadSVG() {
     // SVG должен занимать весь контейнер
     svgEl.setAttribute('width', '100%');
     svgEl.setAttribute('height', '100%');
-    // overflow:visible — контент за краями viewBox (соседние страны
-    // уходящие в отрицательные x-координаты) должен рендериться,
-    // фон .map-area (тот же цвет моря #b8d4e8) подхватывает справа/снизу
-    svgEl.style.overflow = 'visible';
 
+    // Сбрасываем _fullVbW — пересчитается под актуальный контейнер при первом applyFullView()
+    _fullVbW = 0;
     // Сбрасываем viewBox в исходное состояние при каждой загрузке
-    _vbX = 0; _vbY = 0; _vbW = VIEWBOX_W; _vbH = VIEWBOX_H;
+    applyFullView();
 
     buildBackground(svgEl);
     bindRegionClicks(svgEl);
@@ -782,7 +825,10 @@ async function loadSVG() {
 
     // Пересчитываем сетку при изменении размера карты (открытие/закрытие панели)
     if (_graticuleObserver) _graticuleObserver.disconnect();
-    _graticuleObserver = new ResizeObserver(() => buildGraticule(svgEl));
+    _graticuleObserver = new ResizeObserver(() => {
+      if (_vbW >= computeFullViewBox().vbW) applyFullView();
+      buildGraticule(svgEl);
+    });
     _graticuleObserver.observe(container);
 
     // Клик по фону карты (не по region) закрывает панель
@@ -813,11 +859,8 @@ function init() {
 
   // Кнопка «Вся карта» — сброс вида
   document.getElementById('resetViewBtn').addEventListener('click', () => {
-    _vbX = 0; _vbY = 0; _vbW = VIEWBOX_W; _vbH = VIEWBOX_H;
-    if (_svgEl) {
-      _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
-      buildGraticule(_svgEl);
-    }
+    applyFullView();
+    if (_svgEl) buildGraticule(_svgEl);
     closeSidebar();
   });
 
