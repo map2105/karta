@@ -225,21 +225,68 @@ html, body {
 }
 
 /* ── SVG маркеры городов ─────────────────── */
-.map-marker {
-  transition: opacity 0.15s;
+.map-marker { transition: opacity 0.15s; }
+
+.map-marker .marker-dot {
+  transition: transform 0.2s ease, fill 0.15s;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.map-marker .marker-ring {
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 .map-marker:hover .marker-dot {
-  fill: #e67e22;
+  transform: scale(2.2);
+  fill: #e74c3c;
 }
 .map-marker:hover .marker-ring {
-  opacity: 1;
-  r: 130;
+  opacity: 0.5;
 }
-.map-marker.active .marker-dot {
-  fill: #e67e22;
+.map-marker.active .marker-dot { fill: #e74c3c; }
+.map-marker.active .marker-ring { opacity: 0.5; }
+
+/* ── Тултип маркера ──────────────────────── */
+.map-tooltip {
+  position: fixed;
+  z-index: 500;
+  width: 230px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10);
+  border: 1px solid rgba(0,0,0,0.07);
+  pointer-events: none;
+  display: none;
 }
-.map-marker.active .marker-ring {
-  opacity: 1;
+
+.tooltip-img {
+  width: 100%;
+  height: 128px;
+  object-fit: cover;
+  display: block;
+}
+
+.tooltip-img[src=""] { display: none; }
+
+.tooltip-body {
+  padding: 10px 13px 12px;
+}
+
+.tooltip-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1a2a1b;
+  margin-bottom: 5px;
+}
+
+.tooltip-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  color: #666;
+  line-height: 1.55;
+  margin: 0;
 }
 
 /* ── Sidebar ─────────────────────────────── */

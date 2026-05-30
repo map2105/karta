@@ -586,6 +586,45 @@ function buildRegionMiniMap(regionId, container) {
   container.appendChild(mini);
 }
 
+// ── Тултип маркера ────────────────────────────────────────────
+function showMarkerTooltip(regionId, svgX, svgY) {
+  const data = CONFIG.regions[regionId];
+  const tooltip = document.getElementById('mapTooltip');
+  if (!tooltip || !data) return;
+
+  tooltip.querySelector('.tooltip-name').textContent = data.name || regionId;
+  tooltip.querySelector('.tooltip-desc').textContent = (data.description || '').replace(/\n\n/g, ' ');
+
+  const img = tooltip.querySelector('.tooltip-img');
+  img.src = data.tooltipImage || '';
+
+  // SVG → экранные координаты
+  const container = document.getElementById('svgContainer');
+  const rect = container.getBoundingClientRect();
+  const sc   = Math.min(rect.width / _vbW, rect.height / _vbH);
+  const offX = (rect.width  - _vbW * sc) / 2;
+  const offY = (rect.height - _vbH * sc) / 2;
+  const sx   = rect.left + offX + (svgX - _vbX) * sc;
+  const sy   = rect.top  + offY + (svgY - _vbY) * sc;
+
+  tooltip.style.display = 'block';
+  const tw = tooltip.offsetWidth;
+  const th = tooltip.offsetHeight;
+
+  let left = sx - tw / 2;
+  let top  = sy - th - 14;
+  left = Math.max(8, Math.min(window.innerWidth - tw - 8, left));
+  top  = Math.max(8, top);
+
+  tooltip.style.left = left + 'px';
+  tooltip.style.top  = top  + 'px';
+}
+
+function hideMarkerTooltip() {
+  const el = document.getElementById('mapTooltip');
+  if (el) el.style.display = 'none';
+}
+
 // ── Маркеры городов (рисуются поверх регионов прямо в SVG) ────
 function buildMarkers(svgEl) {
   if (!CONFIG || !CONFIG.regions) return;
@@ -598,11 +637,8 @@ function buildMarkers(svgEl) {
     svgEl.appendChild(markerGroup);
   }
 
-  // Размер маркера в SVG-единицах
-  // При ширине SVG 20955 и реальной ширине ~1500px → 1px ≈ 14 SVG ед.
-  // Делаем радиус ~80 SVG ед. ≈ 5-6 пикселей на экране
-  const R  = 80;   // радиус кружка
-  const R2 = 110;  // радиус внешнего кольца (hover/active)
+  const R  = 38;   // радиус кружка
+  const R2 = 68;   // радиус внешнего кольца (виден только при hover)
 
   Object.entries(CONFIG.regions).forEach(([id, region]) => {
     if (!region.pin) return;
@@ -635,9 +671,11 @@ function buildMarkers(svgEl) {
     g.appendChild(ring);
     g.appendChild(dot);
 
-    // Клик — открывает ту же боковую панель
+    g.addEventListener('mouseenter', () => showMarkerTooltip(id, x, y));
+    g.addEventListener('mouseleave', hideMarkerTooltip);
     g.addEventListener('click', e => {
       e.stopPropagation();
+      hideMarkerTooltip();
       openSidebar(id);
     });
 
