@@ -173,12 +173,19 @@ function openDetail(regionId) {
     if (embed) {
       // ── VK Видео / Rutube / любой embed → iframe ────────────
       const wrap = document.createElement('div');
-      wrap.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000';
+      wrap.style.cssText = 'position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000';
+
+      const loadMsg = document.createElement('div');
+      loadMsg.className = 'embed-loading';
+      loadMsg.textContent = 'Загрузка видео…';
+      wrap.appendChild(loadMsg);
+
       const iframe = document.createElement('iframe');
       iframe.src = embed.embedUrl;
       iframe.style.cssText = 'width:100%;height:100%;border:none;display:block';
       iframe.setAttribute('allowfullscreen', '');
       iframe.setAttribute('allow', 'autoplay; fullscreen');
+      iframe.addEventListener('load', () => loadMsg.remove());
       wrap.appendChild(iframe);
       mediaInner.appendChild(wrap);
     } else if (isVideo(mediaFile.path)) {
@@ -806,7 +813,8 @@ function bindZoomPan(svgEl, container) {
     _vbX = _dragVbX0 - dx / _dragScale;
     _vbY = _dragVbY0 - dy / _dragScale;
     clampView();
-    didDrag = true;
+    // Порог 5px: микро-дрожание мыши при клике не считается drag-ом
+    if (Math.hypot(dx, dy) > 5) didDrag = true;
     // Один DOM-апдейт за кадр — лишние mousemove пропускаем
     if (!_rafPending) {
       _rafPending = true;
