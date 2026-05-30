@@ -369,6 +369,24 @@ html, body {
   overflow: hidden;
 }
 
+.sidebar-image {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar-image:empty {
+  display: none;
+}
+
+.sidebar-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .sidebar-description {
   padding: 14px 20px 10px;
   font-size: 13.5px;

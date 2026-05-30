@@ -103,6 +103,18 @@ function openSidebar(regionId) {
 
   document.getElementById('sidebarTitle').textContent = name;
 
+  // Картинка
+  const imageEl = document.getElementById('sidebarImage');
+  if (imageEl) {
+    imageEl.innerHTML = '';
+    if (data && data.image) {
+      const img = document.createElement('img');
+      img.src = data.image;
+      img.alt = name;
+      imageEl.appendChild(img);
+    }
+  }
+
   // Описание
   const descEl = document.getElementById('sidebarDescription');
   descEl.textContent = desc;
