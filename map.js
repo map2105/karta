@@ -119,21 +119,6 @@ function openSidebar(regionId) {
   const descEl = document.getElementById('sidebarDescription');
   descEl.textContent = desc;
 
-  // Бейджи — уникальные категории доступного контента
-  const badgesEl = document.getElementById('sidebarBadges');
-  badgesEl.innerHTML = '';
-  const seen = new Set();
-  files.forEach(f => {
-    const b = badgeLabel(f.path);
-    if (!seen.has(b.label)) {
-      seen.add(b.label);
-      const span = document.createElement('span');
-      span.className = 'sidebar-badge';
-      span.innerHTML = `<span class="badge-icon">${b.icon}</span>${b.label}`;
-      badgesEl.appendChild(span);
-    }
-  });
-
   // Список файлов (скрыт, если есть кнопка «Подробнее»)
   const list = document.getElementById('fileList');
   list.innerHTML = '';

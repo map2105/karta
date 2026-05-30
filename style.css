@@ -399,33 +399,6 @@ html, body {
   display: none;
 }
 
-/* Badges — иконки доступных типов контента */
-.sidebar-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 0 20px 14px;
-  flex-shrink: 0;
-}
-
-.sidebar-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px 3px 7px;
-  border-radius: 20px;
-  background: #f0f4ea;
-  border: 1px solid #d8e3cc;
-  font-size: 12px;
-  color: #4a6741;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.sidebar-badge .badge-icon {
-  font-size: 14px;
-  line-height: 1;
-}
 
 /* Кнопка «Подробнее» */
 .sidebar-footer {
