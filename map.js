@@ -15,6 +15,7 @@ let _fullVbW = 0;
 
 // ── Иконки по расширению файла ────────────────────────────────
 function fileIcon(path) {
+  if (/vkvideo\.ru|vk\.com\/video|rutube\.ru/i.test(path)) return '🎬';
   const ext = path.split('.').pop().toLowerCase();
   const map = {
     mp4:'🎬', avi:'🎬', mkv:'🎬', mov:'🎬', wmv:'🎬',
@@ -79,6 +80,7 @@ function badgeLabel(path) {
   if (EXT_PDF.has(ext))         return { icon: '📄', label: 'PDF' };
   if (EXT_IMAGE.has(ext))       return { icon: '🖼️',  label: 'Фото' };
   if (EXT_TEXT.has(ext))        return { icon: '📝', label: 'Текст' };
+  if (/vkvideo\.ru|vk\.com\/video|rutube\.ru/i.test(path)) return { icon: '🎬', label: 'Видео' };
   return { icon: '📁', label: ext.toUpperCase() };
 }
 
