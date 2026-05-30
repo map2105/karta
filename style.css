@@ -690,6 +690,45 @@ html, body {
   word-break: break-word;
 }
 
+.detail-text-para {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 17px;
+  color: #302820;
+  line-height: 1.9;
+  white-space: normal;
+  word-break: break-word;
+  margin-bottom: 1.1em;
+}
+
+.detail-figure {
+  margin: 22px auto 26px;
+  max-width: 400px;
+  background: #faf7f0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+  border: 1px solid #e8e0d0;
+}
+
+.detail-figure img {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-figure figcaption {
+  padding: 8px 16px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #9a8e7d;
+  font-style: italic;
+  text-align: center;
+  letter-spacing: 0.1px;
+  line-height: 1.5;
+  border-top: 1px solid #ede6d8;
+}
+
 .detail-text-loading {
   font-family: 'Lora', Georgia, serif;
   color: #bbb;

@@ -225,8 +225,29 @@ function openDetail(regionId) {
   body.className = 'detail-text-body';
 
   if (data.text) {
-    // Inline текст из конфига
-    body.textContent = data.text;
+    const paras = data.text.split('\n\n');
+    const figs  = data.figures || [];
+    paras.forEach((para, idx) => {
+      if (para.trim()) {
+        const p = document.createElement('p');
+        p.className = 'detail-text-para';
+        p.textContent = para.trim();
+        body.appendChild(p);
+      }
+      const fig = figs.find(f => f.afterParagraph === idx);
+      if (fig) {
+        const figure = document.createElement('figure');
+        figure.className = 'detail-figure';
+        const img = document.createElement('img');
+        img.src = fig.src;
+        img.alt = fig.caption;
+        const cap = document.createElement('figcaption');
+        cap.textContent = fig.caption;
+        figure.appendChild(img);
+        figure.appendChild(cap);
+        body.appendChild(figure);
+      }
+    });
     textContent.appendChild(body);
   } else {
     // Попробовать загрузить первый .txt файл
