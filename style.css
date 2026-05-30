@@ -664,8 +664,10 @@ html, body {
   height: clamp(260px, 36vh, 420px);
   flex-shrink: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 10px;
 }
 
 .detail-region-info:empty {
@@ -673,10 +675,42 @@ html, body {
 }
 
 .detail-region-info svg {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: auto;
+  max-width: 100%;
   aspect-ratio: 1 / 1;
   overflow: visible;
+}
+
+/* Подпись мини-карты */
+.minimap-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 82%;
+  flex-shrink: 0;
+}
+
+.minimap-label::before,
+.minimap-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #c8b89a);
+}
+.minimap-label::after {
+  background: linear-gradient(to left, transparent, #c8b89a);
+}
+
+.minimap-label span {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 11.5px;
+  font-style: italic;
+  color: #9a8e7d;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+  text-align: center;
 }
 
 /* Нет медиа */

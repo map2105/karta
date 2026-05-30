@@ -589,8 +589,20 @@ function buildRegionMiniMap(regionId, container) {
     `fill:${origFill};stroke:rgba(0,0,0,0.45);stroke-width:5;`);
   mini.appendChild(shape);
 
+  // ── Подпись региона ───────────────────────────────────────────
+  const regionName = regionPath.getAttribute('data-name')
+    || (CONFIG.regions[displayId] && CONFIG.regions[displayId].name)
+    || '';
+
+  const label = document.createElement('div');
+  label.className = 'minimap-label';
+  const span = document.createElement('span');
+  span.textContent = regionName;
+  label.appendChild(span);
+
   container.innerHTML = '';
   container.appendChild(mini);
+  if (regionName) container.appendChild(label);
 }
 
 // ── Тултип маркера ────────────────────────────────────────────
