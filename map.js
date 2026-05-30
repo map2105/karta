@@ -54,7 +54,7 @@ function detectEmbed(file) {
   if (/vk\.com\/video_ext|vkvideo\.ru\/video_ext/i.test(url)) {
     return { embedUrl: url };
   }
-  if (/vk\.com\/video[-_]?\d/i.test(url)) {
+  if (/vk\.com\/video[-_]?\d|vkvideo\.ru\/video[-_]?\d/i.test(url)) {
     // Конвертируем ссылку на страницу в embed
     const m = url.match(/video(-?\d+)_(\d+)/);
     if (m) return { embedUrl: `https://vk.com/video_ext.php?oid=${m[1]}&id=${m[2]}&hd=2` };
