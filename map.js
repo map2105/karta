@@ -637,8 +637,8 @@ function buildMarkers(svgEl) {
     svgEl.appendChild(markerGroup);
   }
 
-  const R  = 38;   // радиус кружка
-  const R2 = 68;   // радиус внешнего кольца (виден только при hover)
+  const R  = 58;   // радиус кружка (~4px на экране)
+  const R2 = 92;   // радиус белого кольца (~7px, всегда видимо)
 
   Object.entries(CONFIG.regions).forEach(([id, region]) => {
     if (!region.pin) return;

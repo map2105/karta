@@ -227,24 +227,23 @@ html, body {
 /* ── SVG маркеры городов ─────────────────── */
 .map-marker { transition: opacity 0.15s; }
 
-.map-marker .marker-dot {
-  transition: transform 0.2s ease, fill 0.15s;
+.map-marker .marker-dot,
+.map-marker .marker-ring {
+  transition: transform 0.2s ease;
   transform-box: fill-box;
   transform-origin: center;
 }
-.map-marker .marker-ring {
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.map-marker:hover .marker-dot {
-  transform: scale(2.2);
-  fill: #e74c3c;
-}
+/* Кольцо всегда видимо — контрастирует с любым цветом региона */
+.map-marker .marker-ring { opacity: 0.88; }
+
+.map-marker:hover .marker-dot,
 .map-marker:hover .marker-ring {
-  opacity: 0.5;
+  transform: scale(1.85);
 }
+.map-marker:hover .marker-dot { fill: #e74c3c; }
+
 .map-marker.active .marker-dot { fill: #e74c3c; }
-.map-marker.active .marker-ring { opacity: 0.5; }
+.map-marker.active .marker-ring { opacity: 1; }
 
 /* ── Тултип маркера ──────────────────────── */
 .map-tooltip {
