@@ -57,18 +57,20 @@ html, body {
 }
 
 .header-title {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
   color: #fff;
   line-height: 1.2;
 }
 
 .header-subtitle {
-  font-size: 10.5px;
-  font-weight: 400;
-  color: rgba(255,255,255,0.45);
-  letter-spacing: 0.5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 3px;
   text-transform: uppercase;
 }
 
@@ -83,13 +85,12 @@ html, body {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 5px 14px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px;
-  font-size: 11.5px;
-  color: rgba(255,255,255,0.45);
-  letter-spacing: 0.1px;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 400;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.3px;
   white-space: nowrap;
 }
 
