@@ -59,19 +59,20 @@ html, body {
 
 .header-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 19px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.3px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
   color: #fff;
   line-height: 1.2;
 }
 
 .header-subtitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 9px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.8);
-  letter-spacing: 3px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
