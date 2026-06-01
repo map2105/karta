@@ -58,7 +58,10 @@ function detectEmbed(file) {
   if (/vk\.com\/video[-_]?\d|vkvideo\.ru\/video[-_]?\d/i.test(url)) {
     // Конвертируем ссылку на страницу в embed
     const m = url.match(/video(-?\d+)_(\d+)/);
-    if (m) return { embedUrl: `https://vk.com/video_ext.php?oid=${m[1]}&id=${m[2]}&hd=2` };
+    if (m) {
+      const base = /vkvideo\.ru/i.test(url) ? 'https://vkvideo.ru' : 'https://vk.com';
+      return { embedUrl: `${base}/video_ext.php?oid=${m[1]}&id=${m[2]}&hd=2` };
+    }
   }
 
   // Rutube — форматы:

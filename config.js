@@ -59,7 +59,7 @@ const CONFIG = {
       image: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Plyos-Panorama_%281%29.jpg",
       pin: { lat: 57.459, lon: 41.516 },
       files: [
-        { name: "Видео о городе", path: "https://vkvideo.ru/video-239217267_456239018" },
+        { name: "Видео о городе", path: "https://vkvideo.ru/video-239217267_456239020" },
       ]
     },
     "RU-SMO": { name: "Смоленская область",        files: [] },
