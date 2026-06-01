@@ -316,6 +316,9 @@ function closeDetail() {
   // Остановить видео если играет
   const video = overlay.querySelector('video');
   if (video) { video.pause(); video.src = ''; }
+  // Остановить iframe (VK / Rutube) — сброс src останавливает воспроизведение
+  const iframe = overlay.querySelector('iframe');
+  if (iframe) { iframe.src = ''; }
 }
 
 // ── Подсчёт регионов с файлами ────────────────────────────────
