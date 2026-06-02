@@ -394,12 +394,10 @@ function applyFullView() {
   if (_svgEl) _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
 }
 
-// ── Плавный зум к точке ───────────────────────────────────────
+// ── Зум к точке через blur-маску (лаг скрыт под размытием) ───
 function zoomToPin(svgX, svgY) {
   const fv = computeFullViewBox();
-
-  // Только из «почти полного» вида — не перебиваем ручной зум
-  if (_vbW < fv.vbW * 0.85) return;
+  if (_vbW < fv.vbW * 0.85) return; // не перебиваем ручной зум
 
   // Целевой viewBox: 45% ширины (~2.2×), центр на пине
   const zoomW = fv.vbW * 0.45;
@@ -409,23 +407,26 @@ function zoomToPin(svgX, svgY) {
   const targX = Math.max(-padX, Math.min(VIEWBOX_W - zoomW + padX, svgX - zoomW / 2));
   const targY = Math.max(-padY, Math.min(VIEWBOX_H - zoomH + padY, svgY - zoomH / 2));
 
-  const startX = _vbX, startY = _vbY, startW = _vbW, startH = _vbH;
-  const DUR = 280; // короче — лаг почти незаметен
-  const t0  = performance.now();
+  const container = document.getElementById('svgContainer');
 
-  function ease(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t) * t; }
+  // 1. Размываем карту (CSS, GPU — мгновенно и плавно)
+  container.style.transition = 'filter 120ms ease-in';
+  container.style.filter     = 'blur(6px)';
 
-  (function frame(now) {
-    const t = Math.min((now - t0) / DUR, 1);
-    const e = ease(t);
-    _vbX = startX + (targX - startX) * e;
-    _vbY = startY + (targY - startY) * e;
-    _vbW = startW + (zoomW  - startW) * e;
-    _vbH = startH + (zoomH  - startH) * e;
+  // 2. Пока карта размыта — прыгаем viewBox мгновенно (лаг не виден)
+  setTimeout(() => {
+    _vbX = targX; _vbY = targY; _vbW = zoomW; _vbH = zoomH;
     if (_svgEl) _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
-    if (t < 1) requestAnimationFrame(frame);
-    else if (_svgEl) buildGraticule(_svgEl);
-  })(t0);
+
+    // 3. Убираем размытие — карта «проясняется» на новом месте
+    container.style.transition = 'filter 240ms ease-out';
+    container.style.filter     = '';
+
+    setTimeout(() => {
+      container.style.transition = '';
+      if (_svgEl) buildGraticule(_svgEl);
+    }, 250);
+  }, 130);
 }
 
 function latLonToSvg(lat, lon) {
