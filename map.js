@@ -144,6 +144,12 @@ function openSidebar(regionId) {
   }
 
   document.getElementById('sidebar').classList.add('open');
+
+  // Плавный зум к точке (только если у региона есть пин)
+  if (data && data.pin) {
+    const { x, y } = latLonToSvg(data.pin.lat, data.pin.lon);
+    zoomToPin(x, y);
+  }
 }
 
 function closeSidebar() {
@@ -386,6 +392,42 @@ function applyFullView() {
   const fv = computeFullViewBox();
   _vbX = fv.vbX; _vbY = fv.vbY; _vbW = fv.vbW; _vbH = fv.vbH;
   if (_svgEl) _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
+}
+
+// ── Плавный зум к точке ───────────────────────────────────────
+function zoomToPin(svgX, svgY) {
+  const fv = computeFullViewBox();
+
+  // Запускаем только из «почти полного» вида — не перебиваем ручной зум
+  if (_vbW < fv.vbW * 0.85) return;
+
+  // Целевой масштаб: ~45% ширины полного вида (умеренное приближение, ~2.2×)
+  const zoomW = fv.vbW * 0.45;
+  const zoomH = zoomW * (fv.vbH / fv.vbW);
+
+  // Центрируем на пине, зажимаем в границах карты
+  const padX  = zoomW  * 0.10;
+  const padY  = zoomH  * 0.10;
+  const targX = Math.max(-padX, Math.min(VIEWBOX_W - zoomW + padX, svgX - zoomW / 2));
+  const targY = Math.max(-padY, Math.min(VIEWBOX_H - zoomH + padY, svgY - zoomH / 2));
+
+  const startX = _vbX, startY = _vbY, startW = _vbW, startH = _vbH;
+  const DUR    = 420; // ms
+  const t0     = performance.now();
+
+  function ease(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t) * t; }
+
+  (function frame(now) {
+    const t = Math.min((now - t0) / DUR, 1);
+    const e = ease(t);
+    _vbX = startX + (targX - startX) * e;
+    _vbY = startY + (targY - startY) * e;
+    _vbW = startW + (zoomW  - startW) * e;
+    _vbH = startH + (zoomH  - startH) * e;
+    if (_svgEl) _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
+    if (t < 1) requestAnimationFrame(frame);
+    else if (_svgEl) buildGraticule(_svgEl);
+  })(t0);
 }
 
 function latLonToSvg(lat, lon) {
