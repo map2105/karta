@@ -55,7 +55,7 @@ const CONFIG = {
         { afterParagraph: 5, src: "https://upload.wikimedia.org/wikipedia/commons/1/10/20210818_Tolga_Monastery_01.jpg",                             caption: "Рис. 3 — Толгский монастырь, основан в 1314 году. В нём хранится чудотворная икона и кедровый сад" },
         { afterParagraph: 7, src: "https://upload.wikimedia.org/wikipedia/commons/e/e1/20150412_Yaroslavl_Russia.jpg",                               caption: "Рис. 4 — Церковь Ильи Пророка (1650) — «Сикстинская капелла русского севера»" },
       ],
-      image: "https://upload.wikimedia.org/wikipedia/commons/6/61/Yaroslavl-strelka.JPG",
+      image: "https://upload.wikimedia.org/wikipedia/commons/0/0e/20220628_Yaroslavl_04.jpg",
       pin: { lat: 57.6261, lon: 39.8845 },
       files: [
         { name: "Видео о городе", path: "https://vkvideo.ru/video-239217267_456239022" },
