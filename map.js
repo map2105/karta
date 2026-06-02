@@ -394,15 +394,12 @@ function applyFullView() {
   if (_svgEl) _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
 }
 
-// ── Плавный зум к точке (GPU, без перерисовки SVG) ───────────
+// ── Плавный зум к точке ───────────────────────────────────────
 function zoomToPin(svgX, svgY) {
   const fv = computeFullViewBox();
 
   // Только из «почти полного» вида — не перебиваем ручной зум
   if (_vbW < fv.vbW * 0.85) return;
-
-  const container = document.getElementById('svgContainer');
-  const rect      = container.getBoundingClientRect();
 
   // Целевой viewBox: 45% ширины (~2.2×), центр на пине
   const zoomW = fv.vbW * 0.45;
@@ -412,35 +409,23 @@ function zoomToPin(svgX, svgY) {
   const targX = Math.max(-padX, Math.min(VIEWBOX_W - zoomW + padX, svgX - zoomW / 2));
   const targY = Math.max(-padY, Math.min(VIEWBOX_H - zoomH + padY, svgY - zoomH / 2));
 
-  // Текущие экранные координаты пина
-  const sc  = Math.min(rect.width / _vbW, rect.height / _vbH);
-  const oX  = (rect.width  - _vbW * sc) / 2;
-  const oY  = (rect.height - _vbH * sc) / 2;
-  const sx  = oX + (svgX - _vbX) * sc;
-  const sy  = oY + (svgY - _vbY) * sc;
+  const startX = _vbX, startY = _vbY, startW = _vbW, startH = _vbH;
+  const DUR = 280; // короче — лаг почти незаметен
+  const t0  = performance.now();
 
-  // CSS matrix: scale + translate чтобы пин оказался в центре экрана
-  // matrix(s,0,0,s,tx,ty): точка (sx,sy) → (s·sx+tx, s·sy+ty) = (W/2, H/2)
-  const s  = _vbW / zoomW;
-  const tx = rect.width  / 2 - s * sx;
-  const ty = rect.height / 2 - s * sy;
+  function ease(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t) * t; }
 
-  // Анимируем через CSS transition — GPU compositor, SVG не перерисовывается
-  container.style.transition = 'transform 420ms cubic-bezier(0.4, 0, 0.2, 1)';
-  container.style.willChange = 'transform';
-  container.style.transform  = `matrix(${s},0,0,${s},${tx},${ty})`;
-
-  // После анимации: снимаем transform, фиксируем viewBox — без прыжка
-  setTimeout(() => {
-    container.style.transition = '';
-    container.style.willChange = '';
-    container.style.transform  = '';
-    _vbX = targX; _vbY = targY; _vbW = zoomW; _vbH = zoomH;
-    if (_svgEl) {
-      _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
-      buildGraticule(_svgEl);
-    }
-  }, 430);
+  (function frame(now) {
+    const t = Math.min((now - t0) / DUR, 1);
+    const e = ease(t);
+    _vbX = startX + (targX - startX) * e;
+    _vbY = startY + (targY - startY) * e;
+    _vbW = startW + (zoomW  - startW) * e;
+    _vbH = startH + (zoomH  - startH) * e;
+    if (_svgEl) _svgEl.setAttribute('viewBox', `${_vbX} ${_vbY} ${_vbW} ${_vbH}`);
+    if (t < 1) requestAnimationFrame(frame);
+    else if (_svgEl) buildGraticule(_svgEl);
+  })(t0);
 }
 
 function latLonToSvg(lat, lon) {
