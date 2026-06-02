@@ -638,8 +638,13 @@ function showMarkerTooltip(regionId, svgX, svgY) {
 
   let left = sx - tw / 2;
   let top  = sy - th - 14;
+
+  // Если тултип вылезает за шапку — показываем ниже точки
+  const headerH = (document.querySelector('header, .header, nav') || {}).offsetHeight || 60;
+  if (top < headerH + 8) top = sy + 14;
+
   left = Math.max(8, Math.min(window.innerWidth - tw - 8, left));
-  top  = Math.max(8, top);
+  top  = Math.max(headerH + 8, Math.min(window.innerHeight - th - 8, top));
 
   tooltip.style.left = left + 'px';
   tooltip.style.top  = top  + 'px';
