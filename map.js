@@ -618,7 +618,7 @@ function showMarkerTooltip(regionId, svgX, svgY) {
   if (!tooltip || !data) return;
 
   tooltip.querySelector('.tooltip-name').textContent = data.name || regionId;
-  tooltip.querySelector('.tooltip-desc').textContent = (data.description || '').replace(/\n\n/g, ' ');
+  tooltip.querySelector('.tooltip-desc').textContent = (data.tooltipDescription || data.description || '').replace(/\n\n/g, ' ');
 
   const img = tooltip.querySelector('.tooltip-img');
   img.src = data.tooltipImage || '';
