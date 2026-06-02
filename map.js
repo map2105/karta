@@ -636,21 +636,31 @@ function showMarkerTooltip(regionId, svgX, svgY) {
   const tw = tooltip.offsetWidth;
   const th = tooltip.offsetHeight;
 
-  let left = sx - tw / 2;
-  let top;
-
-  // Флипуем тултип вниз только когда пин реально близко к верху:
-  // менее 60% высоты тултипа от нижнего края шапки
+  // 4-направленное позиционирование: выбираем первый вариант,
+  // который не перекрывает точку и не вылезает за края экрана
   const headerH = (document.querySelector('header, .header') || {}).offsetHeight || 58;
-  if (sy < headerH + th * 0.6) {
-    top = sy + 14;                // ниже точки
-  } else {
-    top = sy - th - 14;           // выше точки (обычный случай)
+  const GAP   = 12;   // зазор между точкой и тултипом (px)
+  const PIN_R = 10;   // приблизительный радиус пина на экране (px)
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  const candidates = [
+    { t: sy - th - GAP - PIN_R, l: sx - tw / 2 },  // сверху
+    { t: sy + GAP + PIN_R,      l: sx - tw / 2 },  // снизу
+    { t: sy - th / 2,           l: sx + GAP + PIN_R }, // справа
+    { t: sy - th / 2,           l: sx - tw - GAP - PIN_R }, // слева
+  ];
+
+  let best = candidates[1]; // запасной — всегда снизу
+  for (const c of candidates) {
+    if (c.t >= headerH + 4 && c.t + th <= H - 8 &&
+        c.l >= 8           && c.l + tw <= W - 8) {
+      best = c; break;
+    }
   }
 
-  // Не вылезаем за края экрана
-  left = Math.max(8, Math.min(window.innerWidth  - tw - 8, left));
-  top  = Math.max(headerH + 4, Math.min(window.innerHeight - th - 8, top));
+  let top  = Math.max(headerH + 4, Math.min(H - th - 8, best.t));
+  let left = Math.max(8,           Math.min(W - tw - 8, best.l));
 
   tooltip.style.left = left + 'px';
   tooltip.style.top  = top  + 'px';
