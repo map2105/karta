@@ -171,7 +171,7 @@ const CONFIG = {
       image: "https://upload.wikimedia.org/wikipedia/commons/2/23/Innopolis_University.jpg",
       pin: { lat: 55.7503, lon: 48.7472 },
       files: [
-        { name: "Видео о городе", path: "https://vkvideo.ru/video-239217267_456239024" },
+        { name: "Видео о городе", path: "https://vkvideo.ru/video-239217267_456239025" },
       ]
     },
     "RU-BA": {
