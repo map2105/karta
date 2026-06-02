@@ -637,14 +637,20 @@ function showMarkerTooltip(regionId, svgX, svgY) {
   const th = tooltip.offsetHeight;
 
   let left = sx - tw / 2;
-  let top  = sy - th - 14;
+  let top;
 
-  // Если тултип вылезает за шапку — показываем ниже точки
-  const headerH = (document.querySelector('header, .header, nav') || {}).offsetHeight || 60;
-  if (top < headerH + 8) top = sy + 14;
+  // Флипуем тултип вниз только когда пин реально близко к верху:
+  // менее 60% высоты тултипа от нижнего края шапки
+  const headerH = (document.querySelector('header, .header') || {}).offsetHeight || 58;
+  if (sy < headerH + th * 0.6) {
+    top = sy + 14;                // ниже точки
+  } else {
+    top = sy - th - 14;           // выше точки (обычный случай)
+  }
 
-  left = Math.max(8, Math.min(window.innerWidth - tw - 8, left));
-  top  = Math.max(headerH + 8, Math.min(window.innerHeight - th - 8, top));
+  // Не вылезаем за края экрана
+  left = Math.max(8, Math.min(window.innerWidth  - tw - 8, left));
+  top  = Math.max(headerH + 4, Math.min(window.innerHeight - th - 8, top));
 
   tooltip.style.left = left + 'px';
   tooltip.style.top  = top  + 'px';
