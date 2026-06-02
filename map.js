@@ -96,6 +96,9 @@ function openSidebar(regionId) {
   }
 
   activeRegion = regionId;
+
+  // Обновляем URL для функции «Поделиться»
+  history.replaceState(null, '', '?city=' + regionId);
   const el = document.getElementById(regionId);
   if (el) el.classList.add('active');
 
@@ -150,6 +153,16 @@ function closeSidebar() {
     if (el) el.classList.remove('active');
     activeRegion = null;
   }
+  history.replaceState(null, '', window.location.pathname);
+}
+
+// ── Тост-уведомление ──────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('visible'), 2200);
 }
 
 // ── Детальная страница ────────────────────────────────────────
@@ -925,6 +938,12 @@ async function loadSVG() {
     buildMarkers(svgEl);
     bindZoomPan(svgEl, container);
 
+    // Открыть город из URL (?city=RU-XX)
+    const urlCity = new URLSearchParams(location.search).get('city');
+    if (urlCity && CONFIG.regions[urlCity] && CONFIG.regions[urlCity].pin) {
+      openSidebar(urlCity);
+    }
+
     // Сетку строим после первого лэйаута
     requestAnimationFrame(() => buildGraticule(svgEl));
 
@@ -980,6 +999,54 @@ function init() {
   });
 
   // Меняем иконку кнопки в зависимости от режима
+  // ── Кнопка «Поделиться» ───────────────────────────────────────
+  document.getElementById('shareBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    if (!activeRegion) return;
+    const url = location.origin + location.pathname + '?city=' + activeRegion;
+    (navigator.clipboard
+      ? navigator.clipboard.writeText(url)
+      : Promise.reject()
+    ).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }).finally(() => showToast('🔗 Ссылка скопирована!'));
+  });
+
+  // ── Клавиатурная навигация ────────────────────────────────────
+  const pinnedIds = Object.keys(CONFIG.regions).filter(id => CONFIG.regions[id] && CONFIG.regions[id].pin);
+
+  document.addEventListener('keydown', e => {
+    const overlay = document.getElementById('detailOverlay');
+    const detailOpen = overlay.classList.contains('open');
+
+    if (e.key === 'Escape') {
+      if (detailOpen) closeDetail();
+      else if (activeRegion) closeSidebar();
+      return;
+    }
+
+    if (e.key === 'Enter' && activeRegion && !detailOpen) {
+      const d = CONFIG.regions[activeRegion];
+      if (d && d.files && d.files.length) openDetail(activeRegion);
+      return;
+    }
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      if (!activeRegion) return;
+      const idx = pinnedIds.indexOf(activeRegion);
+      if (idx === -1) return;
+      const step = e.key === 'ArrowRight' ? 1 : -1;
+      const next = pinnedIds[(idx + step + pinnedIds.length) % pinnedIds.length];
+      if (detailOpen) closeDetail();
+      openSidebar(next);
+    }
+  });
+
   document.addEventListener('fullscreenchange', () => {
     const isFs = !!document.fullscreenElement;
     fsBtn.title = isFs ? 'Выйти из полноэкранного режима' : 'Полноэкранный режим';
