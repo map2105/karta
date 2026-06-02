@@ -938,10 +938,12 @@ async function loadSVG() {
     buildMarkers(svgEl);
     bindZoomPan(svgEl, container);
 
-    // Открыть город из URL (?city=RU-XX)
-    const urlCity = new URLSearchParams(location.search).get('city');
+    // Открыть город из URL (?city=RU-XX и опционально &detail=1)
+    const urlParams = new URLSearchParams(location.search);
+    const urlCity   = urlParams.get('city');
     if (urlCity && CONFIG.regions[urlCity] && CONFIG.regions[urlCity].pin) {
       openSidebar(urlCity);
+      if (urlParams.get('detail') === '1') openDetail(urlCity);
     }
 
     // Сетку строим после первого лэйаута
@@ -980,6 +982,21 @@ function init() {
   });
 
   document.getElementById('detailBackBtn').addEventListener('click', closeDetail);
+
+  // Кнопка «Поделиться» на детальной странице
+  document.getElementById('detailShareBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    if (!activeRegion) return;
+    const url = location.origin + location.pathname + '?city=' + activeRegion + '&detail=1';
+    (navigator.clipboard
+      ? navigator.clipboard.writeText(url)
+      : Promise.reject()
+    ).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = url; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    }).finally(() => showToast('🔗 Ссылка скопирована!'));
+  });
 
   // Кнопка «Вся карта» — сброс вида
   document.getElementById('resetViewBtn').addEventListener('click', () => {

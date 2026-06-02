@@ -615,9 +615,27 @@ html, body {
   letter-spacing: 0.2px;
 }
 
-.detail-header-spacer {
-  width: 90px;
+.detail-share-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
   flex-shrink: 0;
+  letter-spacing: 0.1px;
+}
+
+.detail-share-btn:hover {
+  background: rgba(255,255,255,0.22);
 }
 
 /* ── Тело: два столбца ───────────────────── */
